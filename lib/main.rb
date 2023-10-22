@@ -1,0 +1,5 @@
+# General steps
+
+
+
+# Psuedo Code:
