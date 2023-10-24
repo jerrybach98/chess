@@ -5,20 +5,99 @@
   # Player 1 white piece goes first
 
 # Psuedo Code:
-# Class Game
+class Game
   # Make game saveable by serializing with JSON
   # announce 
     # when king is in check
   # loop game functions
+  # Play game
+end
 
-# Class Board
+class Board
   # set up as array (8X8)
-  # Figure out how to display a visual chess board to console
-    # 1-8 vertially or a-h horizontally
-  # display board function
-  # Populate board with unicode characters as chess pieces (black, white)
+  def initialize
+    @board = [
+      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ '],
+      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ ']
+    ]
+  end
 
-# Class Piece
+  def display_board
+    color_board
+    row_count = 1
+
+    puts '   a  b  c  d  e  f  g  h   '
+    reverse_board = @board.reverse
+    reverse_board.each do |row|
+      # append 1 to 8 before and after each row
+      row.unshift("#{row_count} ")
+      row.push(" #{row_count}")
+      row_count += 1
+
+      puts row.join('')
+      row.each do |element|
+        if element != '   '
+          element.prepend("\e[47m")
+          element.concat("\e[0m")
+        # prepend / append "\e[40m text \e[0m" to each element
+        # 40 - 47
+        # 47 gray
+        # if not '   ' make black
+        end
+      end
+    end
+    puts '   a  b  c  d  e  f  g  h   '
+  end
+
+  def color_board
+    @board.each_with_index do |row, index|
+      if index.odd?
+        row.each_with_index do |element, index|
+          if index.odd?
+            element.prepend("\e[47m")
+            element.concat("\e[0m")
+          else
+            element.prepend("\e[46m")
+            element.concat("\e[0m")
+          end
+        end
+      else
+        row.each_with_index do |element, index|
+          if index.odd?
+            element.prepend("\e[46m")
+            element.concat("\e[0m")
+          else
+            element.prepend("\e[47m")
+            element.concat("\e[0m")
+          end
+
+          # prepend / append "\e[40m  \e[0m" to each element "\e[31m●\e[0m"
+          # if odd
+            # element.prepend("e[40m")
+            # element.concat()
+
+          # 40 - 47
+          # 47 gray
+        end
+      end
+    end
+
+  end
+
+
+  # display possible moves as red dots
+  # highlight square of selected piece
+  # refresh display when something happens?
+  # when piece moves, set empty square to '  '
+end
+
+class Piece
   # Don't let pieces go out of bounds (stay within array)
   # A friendly piece can't replace a friendly piece
   # Pieces can be placed over enemy pieces 
@@ -45,9 +124,12 @@
       # If there is no path king can move from check, declare checkmate
       # Don't let king move into path of enemy piece
       # any direction by 1
+      # Can't move king into a check
+end
 
-# Class Players
-  # get inputs / handle invalid 
+class Players
+  # Select game mode
+  # get move / handle invalid 
   # error message (not possible moves)
     # Out of bounds, can't move over friendly, moving king into check
   # select piece function
@@ -55,6 +137,20 @@
   # -1 on row numbers to match array
   # Convert input to lowercase / case non sensitive
   # Switch D1(column + row) to 1D as board is represented as @Board[row][Column]
+end
 
-# Class Computer
+class Computer
   # build simple AI (random legal move, random piece, random location)
+end
+
+
+# other classes
+# display class?
+# movement / validate moves
+# serializer
+
+board = Board.new
+board.display_board
+# players = Players.new(board)
+# game = Game.new(board, players)
+# game.play_game
