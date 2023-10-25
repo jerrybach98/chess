@@ -14,79 +14,65 @@ class Game
 end
 
 class Board
-  # set up as array (8X8)
   def initialize
     @board = [
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ '],
+      
     ]
   end
 
+  # Removes syntax from nested array, display horizontal letters and vertical numbers for coordinates
   def display_board
-    color_board
-    row_count = 1
+    color_board()
 
+    row_count = 8
     puts '   a  b  c  d  e  f  g  h   '
     reverse_board = @board.reverse
+
     reverse_board.each do |row|
-      # append 1 to 8 before and after each row
       row.unshift("#{row_count} ")
       row.push(" #{row_count}")
-      row_count += 1
-
+      row_count -= 1
       puts row.join('')
-      row.each do |element|
-        if element != '   '
-          element.prepend("\e[47m")
-          element.concat("\e[0m")
-        # prepend / append "\e[40m text \e[0m" to each element
-        # 40 - 47
-        # 47 gray
-        # if not '   ' make black
-        end
-      end
     end
     puts '   a  b  c  d  e  f  g  h   '
   end
 
+
+  # Alternate row and column color indexes to create checkered pattern
+  # 30 turns the text black, 47 background white, and 100 background grey
   def color_board
     @board.each_with_index do |row, index|
       if index.odd?
         row.each_with_index do |element, index|
           if index.odd?
-            element.prepend("\e[47m")
+            element.prepend("\e[30;47m")
             element.concat("\e[0m")
           else
-            element.prepend("\e[46m")
+            element.prepend("\e[30;100m")
             element.concat("\e[0m")
           end
         end
       else
         row.each_with_index do |element, index|
           if index.odd?
-            element.prepend("\e[46m")
+            element.prepend("\e[30;100m")
             element.concat("\e[0m")
           else
-            element.prepend("\e[47m")
+            element.prepend("\e[30;47m")
             element.concat("\e[0m")
           end
-
-          # prepend / append "\e[40m  \e[0m" to each element "\e[31m●\e[0m"
-          # if odd
-            # element.prepend("e[40m")
-            # element.concat()
-
-          # 40 - 47
-          # 47 gray
         end
       end
     end
+
 
   end
 
