@@ -6,27 +6,30 @@
 
 # Psuedo Code:
 class Game
-  def initialize(board, players)
+  def initialize(board, player)
     @board = board
-    @players = players
+    @player = player
   end
 
 
   def play_game
     introduction
+    @player.select_mode
     @board.display_board
 
   end
 
   def game_loop
     play_game
+    @player.select_position
+    @board.display_board
 
   end
 
   def introduction
     puts "Wecome to chess!"
     puts "\nHow to play:"
-    puts "Using algaebraic notation eg. d2"
+    puts "Using algebraic notation eg. d2"
     puts "1. Enter the position of the piece you want to select"
     puts "2. Enter where you want to move the piece"
     puts "\nSelect game mode:"
@@ -36,9 +39,11 @@ class Game
 
   # announcements
     # when king is in check?
-  # game modes
-  # player vs player
-  # player vs computer
+  # game modes selection
+    # player vs player
+      # get both player names
+    # player vs computer
+      # get one player name
 end
 
 class Board
@@ -57,6 +62,7 @@ class Board
   end
 
   # Removes syntax from array, display horizontal and vertical coordinates
+  # Print allows multiple strings on one line
   def display_board
     color_board()
 
@@ -65,11 +71,13 @@ class Board
     reverse_board = @board.reverse
 
     reverse_board.each do |row|
-      row.unshift("#{row_count} ")
-      row.push(" #{row_count}")
+      print "#{row_count} "
+      print row.join('')
+      print " #{row_count}"
+      puts  "\n"
       row_count -= 1
-      puts row.join('')
     end
+
     puts '   a  b  c  d  e  f  g  h   '
   end
 
@@ -100,8 +108,6 @@ class Board
         end
       end
     end
-
-
   end
 
 
@@ -143,7 +149,7 @@ class Piece
       # if king can't move anywhere stalemate
 end
 
-class Players
+class Player
   def initialize(board)
     @board = board
     @player1 = nil
@@ -158,7 +164,33 @@ class Players
   end
 
   def select_position
+    loop do
+      position = gets.chomp.downcase
+      return position if position.length == 2
 
+      puts 'Position enter a position with algebraic notation'
+    end
+    position
+  end
+
+  def array_value(position)
+    array = position.split('')
+
+    x = array[]
+
+    # reverse
+    # convert letter to number [x] value
+    # subtract 1 to [y] value
+  end
+
+  def select_mode
+    loop do
+      mode = gets.chomp.to_i
+      return mode if mode.between?(1,2)
+
+      puts 'Enter 1 or 2 to select mode'
+    end
+    mode
   end
 
 
@@ -192,8 +224,8 @@ end
 # serializer
 
 board = Board.new
-players = Players.new(board)
-game = Game.new(board, players)
+player = Player.new(board)
+game = Game.new(board, player)
 game.game_loop
 
 
@@ -202,6 +234,7 @@ game.game_loop
 # coloring board
 # work on selecting pieces
 # making them move
+# replacing them with empty value
 # learn how to refresh console and update after every move
 # valid move check
 # simple ai
