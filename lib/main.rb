@@ -6,11 +6,39 @@
 
 # Psuedo Code:
 class Game
-  # Make game saveable by serializing with JSON
-  # announce 
-    # when king is in check
-  # loop game functions
-  # Play game
+  def initialize(board, players)
+    @board = board
+    @players = players
+  end
+
+
+  def play_game
+    introduction
+    @board.display_board
+
+  end
+
+  def game_loop
+    play_game
+
+  end
+
+  def introduction
+    puts "Wecome to chess!"
+    puts "\nHow to play:"
+    puts "Using algaebraic notation eg. d2"
+    puts "1. Enter the position of the piece you want to select"
+    puts "2. Enter where you want to move the piece"
+    puts "\nSelect game mode:"
+    puts "[1] Player vs Player"
+    puts "[2] Player vs Computer"
+  end
+
+  # announcements
+    # when king is in check?
+  # game modes
+  # player vs player
+  # player vs computer
 end
 
 class Board
@@ -28,7 +56,7 @@ class Board
     ]
   end
 
-  # Removes syntax from nested array, display horizontal letters and vertical numbers for coordinates
+  # Removes syntax from array, display horizontal and vertical coordinates
   def display_board
     color_board()
 
@@ -46,8 +74,8 @@ class Board
   end
 
 
-  # Alternate row and column color indexes to create checkered pattern
-  # 30 turns the text black, 47 background white, and 100 background grey
+  # Creates checkered pattern using indexes for alternating rows and column colors
+  # 30 turns the pieces black, 47 background white, and 100 background grey
   def color_board
     @board.each_with_index do |row, index|
       if index.odd?
@@ -91,6 +119,7 @@ class Piece
   # Basic Legal moves
   # multiply black moves by negative 1
   # only knight can go over pieces 
+  # pieces will have helper functions or method that stores movement
   # @Board [row] [Column]
     # Pawn
       # can move 1 row [x+1][y]
@@ -111,9 +140,30 @@ class Piece
       # Don't let king move into path of enemy piece
       # any direction by 1
       # Can't move king into a check
+      # if king can't move anywhere stalemate
 end
 
 class Players
+  def initialize(board)
+    @board = board
+    @player1 = nil
+    @player2 = nil
+  end
+
+  def get_names
+    puts 'Player 1 what is your name?'
+    @player1 = gets.chomp
+    puts 'Player 2 what is your name?'
+    @player2 = gets.chomp
+  end
+
+  def select_position
+
+  end
+
+
+
+
   # Select game mode
   # get move / handle invalid 
   # error message (not possible moves)
@@ -123,6 +173,12 @@ class Players
   # -1 on row numbers to match array
   # Convert input to lowercase / case non sensitive
   # Switch D1(column + row) to 1D as board is represented as @Board[row][Column]
+  # let players only be able to select their own piece
+end
+
+
+class Serializer
+  # Make game saveable by serializing with JSON
 end
 
 class Computer
@@ -136,7 +192,17 @@ end
 # serializer
 
 board = Board.new
-board.display_board
-# players = Players.new(board)
-# game = Game.new(board, players)
-# game.play_game
+players = Players.new(board)
+game = Game.new(board, players)
+game.game_loop
+
+
+# inputs
+# what direction pieces can move in
+# coloring board
+# work on selecting pieces
+# making them move
+# learn how to refresh console and update after every move
+# valid move check
+# simple ai
+# serializer
