@@ -124,6 +124,15 @@ class Board
     end
   end
 
+  # Convert chess notation to array value 
+  # Convert letter given to number using ord for ASCII
+  def convert_position(position)
+    array = position.split('').reverse
+    row = array[0].to_i - 1
+    col = array[1].ord - 97
+    return row, col
+  end
+
 
 
 
@@ -203,15 +212,8 @@ class Player
     end
   end
 
-  def array_value(position)
-    array = position.split('')
-
-    x = array[]
-
-    # reverse
-    # convert letter to number [x] value
-    # subtract 1 to [y] value
-  end
+  #position = "c2"
+  #p convert_position(position)
 
   def select_mode
     loop do
@@ -247,13 +249,14 @@ class Computer
   # build simple AI (random legal move, random piece, random location)
 end
 
-board = Board.new
-player = Player.new(board)
-game = Game.new(board, player)
-game.game_loop
+#board = Board.new
+#player = Player.new(board)
+#game = Game.new(board, player)
+# game.game_loop
 
 
 # Check list
+
 # inputs / convert
 # what direction pieces can move in
 # work on selecting pieces
@@ -261,8 +264,9 @@ game.game_loop
 # replacing them with empty value once they move
 # learn how to refresh console and update after every move
 # valid move check
+# edge cases
 # win conditions
-# simple ai
+# simple ai / select game mode
 # serializer
 
 
