@@ -21,8 +21,12 @@ class Game
 
   def game_loop
     play_game
+    puts "Select a piece"
     @player.select_position
     @board.display_board
+    puts "Select a position"
+    @board.display_board
+
 
   end
 
@@ -87,28 +91,41 @@ class Board
   def color_board
     @board.each_with_index do |row, index|
       if index.odd?
-        row.each_with_index do |element, index|
-          if index.odd?
-            element.prepend("\e[30;47m")
-            element.concat("\e[0m")
-          else
-            element.prepend("\e[30;100m")
-            element.concat("\e[0m")
-          end
-        end
+        odd_row_color(row)
       else
-        row.each_with_index do |element, index|
-          if index.odd?
-            element.prepend("\e[30;100m")
-            element.concat("\e[0m")
-          else
-            element.prepend("\e[30;47m")
-            element.concat("\e[0m")
-          end
-        end
+        even_row_color(row)
       end
     end
   end
+
+  # Color board helper
+  def odd_row_color(row)
+    row.each_with_index do |element, index|
+      if index.odd?
+        element.prepend("\e[30;47m")
+        element.concat("\e[0m")
+      else
+        element.prepend("\e[30;100m")
+        element.concat("\e[0m")
+      end
+    end
+  end
+
+  # Color board helper
+  def even_row_color(row)
+    row.each_with_index do |element, index|
+      if index.odd?
+        element.prepend("\e[30;100m")
+        element.concat("\e[0m")
+      else
+        element.prepend("\e[30;47m")
+        element.concat("\e[0m")
+      end
+    end
+  end
+
+
+
 
 
   # display possible moves as red dots
@@ -126,11 +143,13 @@ class Piece
   # multiply black moves by negative 1
   # only knight can go over pieces 
   # pieces will have helper functions or method that stores movement
+  # only allow player 1 to select white and player 2 to select black
   # @Board [row] [Column]
     # Pawn
       # can move 1 row [x+1][y]
       # 2 in beginning
       # attack diagonally with [x+1][y+1] [x+1][y-1]
+      # pawn promotion
     # Knight
       # possible_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
     # Bishop
@@ -143,9 +162,9 @@ class Piece
     # King
       # If king is in pathway of a piece declare check
       # If there is no path king can move from check, declare checkmate
-      # Don't let king move into path of enemy piece
+      # Don't let king move into path of enemy piece or into check
       # any direction by 1
-      # Can't move king into a check
+      # remove king from check by moving king, moving piece in way, or taking the piece
       # if king can't move anywhere stalemate
 end
 
@@ -166,11 +185,22 @@ class Player
   def select_position
     loop do
       position = gets.chomp.downcase
-      return position if position.length == 2
+      return position if valid_input?(position)
 
-      puts 'Position enter a position with algebraic notation'
+      puts 'Enter a position with algebraic notation'
     end
     position
+  end
+
+  # Helper function to check if algebraic notation is correct
+  def valid_input?(position)
+    array = position.split('')
+    array[1] = array[1].to_i
+    if array[0].match?(/[a-h]/) && array[1].between?(1, 8) && array.count == 2
+      return true
+    else
+      return false
+    end
   end
 
   def array_value(position)
@@ -217,25 +247,25 @@ class Computer
   # build simple AI (random legal move, random piece, random location)
 end
 
-
-# other classes
-# display class?
-# movement / validate moves
-# serializer
-
 board = Board.new
 player = Player.new(board)
 game = Game.new(board, player)
 game.game_loop
 
 
-# inputs
+# Check list
+# inputs / convert
 # what direction pieces can move in
-# coloring board
 # work on selecting pieces
-# making them move
-# replacing them with empty value
+# coloring board for selected
+# replacing them with empty value once they move
 # learn how to refresh console and update after every move
 # valid move check
+# win conditions
 # simple ai
 # serializer
+
+
+# other classes
+# display class?
+# movement / validate moves
