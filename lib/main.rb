@@ -32,17 +32,24 @@ class Game
     end
   end
 
-  def prompt_move
-    puts "Select a piece"
-    player_input = @player.select_position
-    p piece_coordinates = @board.select_piece(player_input)
-    puts @piece.friendly_piece?(piece_coordinates, @round)
+  def prompt_move 
+    puts 'Select a piece'
+    piece_coordinates = prompt_valid_selection()
     @board.display_board
     
     puts "Select a position"
     player_input = @player.select_position
     move = @board.select_piece(player_input)
     @board.move_piece(piece_coordinates, move)
+  end
+
+  def prompt_valid_selection
+    loop do 
+      player_input = @player.select_position
+      piece_coordinates = @board.select_piece(player_input)
+      return piece_coordinates if @piece.friendly_piece?(piece_coordinates, @round)
+      puts "\nInvalid, select a with algebraic notation"
+    end
   end
 
   def introduction
@@ -169,7 +176,7 @@ class Board
     new_col = new_pos[1]
     old_row = piece[0]
     old_col = piece[1]
-    @chessboard[new_row][new_col] = @chessboard[old_row][old col]
+    @chessboard[new_row][new_col] = @chessboard[old_row][old_col]
     @chessboard[old_row][old_col] = '   '
   end
 
@@ -196,7 +203,7 @@ class Piece
     black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
-    p element = @chessboard[row][col]
+    element = @chessboard[row][col]
     if round.odd? && white.include?(element)
       true
     elsif round.even? && black.include?(element)
@@ -204,7 +211,7 @@ class Piece
     else
       false
     end
-  # A friendly piece can't replace a friendly piece, use for not being able to move on top later
+  # Reuse? A friendly piece can't replace a friendly piece, use for not being able to move on top later
   end 
 
   #def in_bounds?([x,y])
@@ -344,19 +351,17 @@ class Computer
   # build simple AI (random legal move, random piece, random location)
 end
 
-#board = Board.new
-#piece = Piece.new(board)
-#player = Player.new(board, piece)
-#game = Game.new(board, player, piece)
-#game.game_loop
+board = Board.new
+piece = Piece.new(board)
+player = Player.new(board, piece)
+game = Game.new(board, player, piece)
+game.game_loop
 
 
 # Check list
-# rename chessboard instance variable for clarity / select firendly pieces only
 
 # select valid piece / 
-  # if turn odd can only select white
-  # if turn even select black
+  #prompt user to rechoose if false
 # pieces
   # what direction pieces can move in
   # Valid piece move
