@@ -6,9 +6,11 @@
 
 # Psuedo Code:
 class Game
-  def initialize(board, player)
+  attr_accessor :board
+  def initialize(board, player, piece)
     @board = board
     @player = player
+    @piece = piece
   end
 
 
@@ -20,14 +22,26 @@ class Game
   end
 
   def game_loop
+    # loop do
     play_game
+    prompt_move
+    @board.display_board
+    p @board.board
+    @board.display_board
+    p @board.board
+
+  end
+
+  def prompt_move
     puts "Select a piece"
-    @player.select_position
+    player_input = @player.select_position
+    piece = @board.select_piece(player_input)
     @board.display_board
+    
     puts "Select a position"
-    @board.display_board
-
-
+    player_input = @player.select_position
+    move = @board.select_piece(player_input)
+    @board.move_piece(piece, move)
   end
 
   def introduction
@@ -43,14 +57,18 @@ class Game
 
   # announcements
     # when king is in check?
+    # pawn promotion prompt
   # game modes selection
     # player vs player
       # get both player names
     # player vs computer
       # get one player name
+
 end
 
 class Board
+  attr_accessor :board
+
   def initialize
     @board = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -60,16 +78,24 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ '],
-      
+      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+    ]
+
+    @display = [
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   end
 
   # Removes syntax from array, display horizontal and vertical coordinates
   # Print allows multiple strings on one line
   def display_board
-    color_board()
-
     row_count = 8
     puts '   a  b  c  d  e  f  g  h   '
     reverse_board = @board.reverse
@@ -89,7 +115,7 @@ class Board
   # Creates checkered pattern using indexes for alternating rows and column colors
   # 30 turns the pieces black, 47 background white, and 100 background grey
   def color_board
-    @board.each_with_index do |row, index|
+    @display.each_with_index do |row, index|
       if index.odd?
         odd_row_color(row)
       else
@@ -99,6 +125,12 @@ class Board
   end
 
   # Color board helper
+  # Currently not working cuz it keeps prepending/concating every time its called
+    # use a board purely for display and keep it separate
+  # send board to display board
+  # combine by send the coordinates of the pieces to the displayed board 
+  # color the display board
+  # then clear it 
   def odd_row_color(row)
     row.each_with_index do |element, index|
       if index.odd?
@@ -124,18 +156,21 @@ class Board
     end
   end
 
-  # Convert chess notation to array value 
-  # Convert letter given to number using ord for ASCII
-  def convert_position(position)
+  # Convert chess notation to array value [subtract 1][ASCII num]
+  # Convert ASCII char to num using .ord
+  def select_piece(position)
     array = position.split('').reverse
     row = array[0].to_i - 1
     col = array[1].ord - 97
     return row, col
   end
 
-
-
-
+  def move_piece(piece, new_pos)
+    # moves the selected piece to the new position
+    # set the old position to empty 
+    @board[new_pos[0]][new_pos[1]] = @board[piece[0]][piece[1]]
+    @board[piece[0]][piece[1]] = '   '
+  end
 
   # display possible moves as red dots
   # highlight square of selected piece
@@ -144,21 +179,65 @@ class Board
 end
 
 class Piece
+  def initialize(piece)
+    @piece = piece
+  end
   # Don't let pieces go out of bounds (stay within array)
-  # A friendly piece can't replace a friendly piece
-  # Pieces can be placed over enemy pieces 
-  # when pawn goes to opposite side prompt user
-  # Basic Legal moves
-  # multiply black moves by negative 1
-  # only knight can go over pieces 
+   # Pieces can be placed over enemy pieces / taking enemy piece
+  # multiply black moves by negative 1?
   # pieces will have helper functions or method that stores movement
+
+  def friendly_piece?
+  # A friendly piece can't replace a friendly piece
   # only allow player 1 to select white and player 2 to select black
-  # @Board [row] [Column]
-    # Pawn
-      # can move 1 row [x+1][y]
-      # 2 in beginning
-      # attack diagonally with [x+1][y+1] [x+1][y-1]
-      # pawn promotion
+  end 
+
+  #def in_bounds?([x,y])
+  #  if x.between?(0, 7) && y.between?(0, 7)
+  #    true
+  #  else
+  #    false
+  #  end
+  #end
+
+  #def pawn([x,y])
+
+
+    # can move 1 row [x+1][y]
+    # 2 in beginning
+    # attack diagonally with [x+1][y+1] [x+1][y-1]
+    # pawn promotion
+  #end
+
+  #def pawn_movement([x,y])
+  #  puts new_pos = [x+1,y]
+    # first_move = [x+2,y]
+
+  #end
+
+  def pawn_moved? 
+    #handle getting to enemy line?
+    # if white pawn ==?
+    # if black pawn ==?
+    @board.each_with_index do |row, index|
+      if index == 1 || index == 6
+        true
+      else
+        false
+      end
+    end
+  end
+
+  def en_passant
+    # implement using round counter?
+    # https://en.wikipedia.org/wiki/En_passant
+  end
+
+  def pawn_promotion
+  
+  end
+
+
     # Knight
       # possible_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
     # Bishop
@@ -178,8 +257,9 @@ class Piece
 end
 
 class Player
-  def initialize(board)
+  def initialize(board, piece)
     @board = board
+    @piece = piece
     @player1 = nil
     @player2 = nil
   end
@@ -249,18 +329,19 @@ class Computer
   # build simple AI (random legal move, random piece, random location)
 end
 
-#board = Board.new
-#player = Player.new(board)
-#game = Game.new(board, player)
-# game.game_loop
+board = Board.new
+piece = Piece.new(board)
+player = Player.new(board, piece)
+game = Game.new(board, player, piece)
+game.game_loop
 
 
 # Check list
 
-# inputs / convert
-# what direction pieces can move in
-# work on selecting pieces
-# coloring board for selected
+# pieces
+  # what direction pieces can move in
+# work on selecting pieces method
+# coloring board for selected piece movement
 # replacing them with empty value once they move
 # learn how to refresh console and update after every move
 # valid move check

@@ -1,13 +1,13 @@
 require './lib/main'
 
 describe Board do
-  describe 'convert_position' do
+  describe 'select_piece' do
     subject(:board) { described_class.new }
 
     context 'when given chess notation' do
       it 'converts to a nested array value' do
         position = 'c2'
-        expect(board.convert_position(position)).to eq([1,2])
+        expect(board.select_piece(position)).to eq([1,2])
       end
     end
   end
