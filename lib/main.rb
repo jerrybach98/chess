@@ -6,11 +6,12 @@
 
 # Psuedo Code:
 class Game
-  attr_accessor :board
+  attr_accessor :chessboard
   def initialize(board, player, piece)
     @board = board
     @player = player
     @piece = piece
+    @round = 1
   end
 
 
@@ -22,24 +23,26 @@ class Game
   end
 
   def game_loop
-    # loop do
-    play_game
-    prompt_move
-    @board.display_board
-    # until win condition?
-
+    loop do
+      play_game
+      prompt_move
+      @board.display_board
+      @round += 1
+      return # until win condition?
+    end
   end
 
   def prompt_move
     puts "Select a piece"
     player_input = @player.select_position
-    piece = @board.select_piece(player_input)
+    p piece_coordinates = @board.select_piece(player_input)
+    puts @piece.friendly_piece?(piece_coordinates, @round)
     @board.display_board
     
     puts "Select a position"
     player_input = @player.select_position
     move = @board.select_piece(player_input)
-    @board.move_piece(piece, move)
+    @board.move_piece(piece_coordinates, move)
   end
 
   def introduction
@@ -65,10 +68,10 @@ class Game
 end
 
 class Board
-  attr_accessor :board
+  attr_accessor :chessboard
 
   def initialize
-    @board = [
+    @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
@@ -106,7 +109,7 @@ class Board
 
   # Makes colored clone of board for display purposes
   def colored_clone
-    @display = Marshal.load(Marshal.dump(@board))
+    @display = Marshal.load(Marshal.dump(@chessboard))
     color_display
   end
 
@@ -162,8 +165,12 @@ class Board
   def move_piece(piece, new_pos)
     # moves the selected piece to the new position
     # set the old position to empty 
-    @board[new_pos[0]][new_pos[1]] = @board[piece[0]][piece[1]]
-    @board[piece[0]][piece[1]] = '   '
+    new_row = new_pos[0]
+    new_col = new_pos[1]
+    old_row = piece[0]
+    old_col = piece[1]
+    @chessboard[new_row][new_col] = @chessboard[old_row][old col]
+    @chessboard[old_row][old_col] = '   '
   end
 
   # display possible moves as red dots
@@ -173,17 +180,31 @@ class Board
 end
 
 class Piece
-  def initialize(piece)
-    @piece = piece
+
+  def initialize(board)
+    @board = board
+    @chessboard = board.chessboard
   end
+
   # Don't let pieces go out of bounds (stay within array)
    # Pieces can be placed over enemy pieces / taking enemy piece
   # multiply black moves by negative 1?
   # pieces will have helper functions or method that stores movement
 
-  def friendly_piece?
-  # A friendly piece can't replace a friendly piece
-  # only allow player 1 to select white and player 2 to select black
+  def friendly_piece?(piece_coordinates, round)
+    white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
+    black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    p element = @chessboard[row][col]
+    if round.odd? && white.include?(element)
+      true
+    elsif round.even? && black.include?(element)
+      true
+    else
+      false
+    end
+  # A friendly piece can't replace a friendly piece, use for not being able to move on top later
   end 
 
   #def in_bounds?([x,y])
@@ -209,18 +230,18 @@ class Piece
 
   #end
 
-  def pawn_moved? 
+  #def pawn_moved? 
     #handle getting to enemy line?
     # if white pawn ==?
     # if black pawn ==?
-    @board.each_with_index do |row, index|
-      if index == 1 || index == 6
-        true
-      else
-        false
-      end
-    end
-  end
+  #  @board.each_with_index do |row, index|
+  #    if index == 1 || index == 6
+  #      true
+  #    else
+  #      false
+  #    end
+  #  end
+  #end
 
   def en_passant
     # implement using round counter?
@@ -268,7 +289,7 @@ class Player
   def select_position
     loop do
       position = gets.chomp.downcase
-      return position if valid_input?(position)
+      return position if valid_input?(position) # and friendly? == true
 
       puts 'Enter a position with algebraic notation'
     end
@@ -323,22 +344,23 @@ class Computer
   # build simple AI (random legal move, random piece, random location)
 end
 
-board = Board.new
-piece = Piece.new(board)
-player = Player.new(board, piece)
-game = Game.new(board, player, piece)
-game.game_loop
+#board = Board.new
+#piece = Piece.new(board)
+#player = Player.new(board, piece)
+#game = Game.new(board, player, piece)
+#game.game_loop
 
 
 # Check list
+# rename chessboard instance variable for clarity / select firendly pieces only
 
-# work on selecting pieces method
-  #if turn odd can only select white, if turn even select black
+# select valid piece / 
+  # if turn odd can only select white
+  # if turn even select black
 # pieces
   # what direction pieces can move in
-  # Valid move
+  # Valid piece move
 # coloring board for selected piece movement
-# replacing them with empty value once they move
 # learn how to refresh console and update after every move
 # valid move check
 # edge cases

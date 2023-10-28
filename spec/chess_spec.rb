@@ -13,14 +13,60 @@ describe Board do
   end
 end
 
+describe Piece do
+  describe 'friendly_piece?' do
+    subject(:piece) { described_class.new(board) }
+    let(:board) { instance_double(Board) }
+    let(:chessboard) { 
+      [
+        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+        [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ]
+    }
+
+    context 'when given friendly white piece coordinate and round is odd' do
+      
+      before do
+        allow(board).to receive(:chessboard).and_return(chessboard)
+      end
+
+      it 'returns true' do
+        piece_coordinates = [1, 0]
+        round = 1
+        expect(piece.friendly_piece?(piece_coordinates, round)).to eq(true)
+      end
+    end
+
+    context 'when given friendly black piece coordinate and round is even' do
+
+      before do
+        allow(board).to receive(:chessboard).and_return(chessboard)
+      end
+
+      it 'returns true' do
+        piece_coordinates = [7, 5]
+        round = 6
+        expect(piece.friendly_piece?(piece_coordinates, round)).to eq(true)
+      end
+    end
+  end
+end
+
 describe Player do
   describe '#select_position' do
     context 'when player provides a correct board position' do
-      subject(:player) { described_class.new(board) }
+      subject(:player) { described_class.new(board, piece) }
       let(:board) { instance_double(Board) }
+      let(:piece) { instance_double(Piece) }
 
       before do
-        # allow(players).to receive(:puts)
+       # allow(players).to receive(:puts)
         allow(player).to receive(:gets).and_return('a2')
       end
 
@@ -30,8 +76,9 @@ describe Player do
     end
 
     context 'when player provides an incorrect then correct board position' do
-      subject(:player) { described_class.new(board) }
+      subject(:player) { described_class.new(board, piece) }
       let(:board) { instance_double(Board) }
+      let(:piece) { instance_double(Piece) }
 
       before do
         allow(player).to receive(:gets).and_return('a9', 'a2')
@@ -46,8 +93,9 @@ describe Player do
 
 
   describe '#valid_input?' do
-    subject(:input) { described_class.new(board) }
+    subject(:input) { described_class.new(board, piece) }
     let(:board) { instance_double(Board) }
+    let(:piece) { instance_double(Piece) }
 
     context 'when player inputs valid input' do
       it 'returns true' do

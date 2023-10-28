@@ -16,6 +16,8 @@ Chess is a command-line interface (CLI) game that allows two players to compete 
 * Breaking code down into parts
 * Applying cumulative experience from past projects Eg. caesar cipher
 * Implementing RSpec testing coverage to prevent repetitive command line self testing
+* Importance of testing in complex projects / aiding in code recall
+
 
 
 
