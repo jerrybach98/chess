@@ -26,9 +26,7 @@ class Game
     play_game
     prompt_move
     @board.display_board
-    p @board.board
-    @board.display_board
-    p @board.board
+    # until win condition?
 
   end
 
@@ -81,24 +79,17 @@ class Board
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
 
-    @display = [
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
-    ]
+    @display = nil
   end
 
   # Removes syntax from array, display horizontal and vertical coordinates
   # Print allows multiple strings on one line
   def display_board
+    colored_clone
+
     row_count = 8
     puts '   a  b  c  d  e  f  g  h   '
-    reverse_board = @board.reverse
+    reverse_board = @display.reverse
 
     reverse_board.each do |row|
       print "#{row_count} "
@@ -109,12 +100,21 @@ class Board
     end
 
     puts '   a  b  c  d  e  f  g  h   '
+
+    @display = nil
+  end 
+
+  # Makes colored clone of board for display purposes
+  def colored_clone
+    @display = Marshal.load(Marshal.dump(@board))
+    color_display
   end
+
 
 
   # Creates checkered pattern using indexes for alternating rows and column colors
   # 30 turns the pieces black, 47 background white, and 100 background grey
-  def color_board
+  def color_display
     @display.each_with_index do |row, index|
       if index.odd?
         odd_row_color(row)
@@ -123,14 +123,7 @@ class Board
       end
     end
   end
-
   # Color board helper
-  # Currently not working cuz it keeps prepending/concating every time its called
-    # use a board purely for display and keep it separate
-  # send board to display board
-  # combine by send the coordinates of the pieces to the displayed board 
-  # color the display board
-  # then clear it 
   def odd_row_color(row)
     row.each_with_index do |element, index|
       if index.odd?
@@ -142,7 +135,6 @@ class Board
       end
     end
   end
-
   # Color board helper
   def even_row_color(row)
     row.each_with_index do |element, index|
@@ -155,6 +147,8 @@ class Board
       end
     end
   end
+
+
 
   # Convert chess notation to array value [subtract 1][ASCII num]
   # Convert ASCII char to num using .ord
@@ -338,9 +332,11 @@ game.game_loop
 
 # Check list
 
+# work on selecting pieces method
+  #if turn odd can only select white, if turn even select black
 # pieces
   # what direction pieces can move in
-# work on selecting pieces method
+  # Valid move
 # coloring board for selected piece movement
 # replacing them with empty value once they move
 # learn how to refresh console and update after every move
