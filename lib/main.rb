@@ -18,7 +18,7 @@ class Game
   end
 
   def game_loop
-    4.times do
+    loop do
       prompt_move
       @board.display_board
       @round += 1
@@ -50,7 +50,7 @@ class Game
     loop do 
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.pawn(array_position) # change pawn to a more general check piece method for every piece
+      p @possible_moves = @piece.check_piece # check what piece is being selected and return possible moves
       return array_position if @piece.friendly_piece?(array_position, @round)
       puts "\nInvalid, enter a piece with algebraic notation"
     end
@@ -60,7 +60,7 @@ class Game
     loop do
       chess_notation = @player.select_position
       p array_move = @board.select_piece(chess_notation)
-       if @possible_moves.include?(array_move) # and 
+       if @possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
         @possible_moves = []
         return array_move
        end
@@ -223,17 +223,35 @@ class Piece
   # Reuse? A friendly piece can't replace a friendly piece, use for not being able to move on top later
   end 
 
-  #def move_in_bounds?([x,y])
-  #  if x.between?(0, 7) && y.between?(0, 7)
-  #    true
-  #  else
-  #    false
-  #  end
-  #end
+  # alternatively use this method to take out every possible move that's not in bounds instead of the input
+  def move_in_bounds?(possible_moves)
+    row = possible_moves[0] 
+    col = possible_moves[1]
+    if row.between?(0, 7) && col.between?(0, 7)
+      true
+    else
+      false
+    end
+  end
 
-  def check_piece
+  def check_piece(piece_coordinates)
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
     #check what piece is being selected?
-      # if pawn 
+    if [' ♙ ', ' ♟︎ '].include?(@chessboard[row][col])
+      possible_moves = pawn(piece_coordinates)
+    elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
+      #possible_moves = knight(piece_coordinates)
+    elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
+      #possible_moves = bishop(piece_coordinates)
+    elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
+      #possible_moves = rook(piece_coordinates)
+    elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
+      #possible_moves = king(piece_coordinates)
+    elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
+      #possible_moves = queen(piece_coordinates)
+    end
+    possible_moves
   end
 
   def pawn(piece_coordinates)
@@ -371,13 +389,11 @@ game.play_game
 
 # Check list
 # pieces
+  # check what piecce is being selected
   # what direction pieces can move in
-    # pawn movement 1 or 2
-      # first move
-      # pawn attacking
-  # Check what piece is being selected
   # Don't let pieces move on friendly pieces
-  # move in bounds?
+  # incoporate out of bounds into traversal array
+  # attacking
 # coloring board for selected piece movement
 # learn how to refresh console and update after every move
 # valid move check
