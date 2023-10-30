@@ -1,7 +1,3 @@
-# General steps / Brainstorm
-  # focus on single responsibility
-  # Two players can play against each other or basic AI
-  # Write tests for anything typed into command line repeatedly
 class Game
   attr_accessor :chessboard
   def initialize(board, player, piece)
@@ -22,33 +18,39 @@ class Game
   end
 
   def game_loop
-    2.times do
+    4.times do
       prompt_move
       @board.display_board
       @round += 1
-      #return # until win condition?
+      #return if win condition
+    end
+  end
+
+  def player_turn
+    if @round.odd? 
+      "White"
+    elsif @round.even?
+      "Black"
     end
   end
 
   def prompt_move 
-    puts 'Select a piece'
+    puts "#{player_turn}: Select a piece"
     selection = prompt_valid_selection()
     @board.display_board
     
-    puts "Select a position"
+    puts "#{player_turn}: Select a position"
     p move = prompt_valid_move()
-    # move can only be equal to move + pawn moves? set up like valid selection
     @board.move_piece(selection, move)
     
   end
 
-  # Checks and returns valid array coordinate
+  # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
-      # player input gets converted to array coordinates here
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.pawn(array_position)
+      p @possible_moves = @piece.pawn(array_position) # change pawn to a more general check piece method for every piece
       return array_position if @piece.friendly_piece?(array_position, @round)
       puts "\nInvalid, enter a piece with algebraic notation"
     end
@@ -58,7 +60,7 @@ class Game
     loop do
       chess_notation = @player.select_position
       p array_move = @board.select_piece(chess_notation)
-       if @possible_moves.include?(array_move)
+       if @possible_moves.include?(array_move) # and 
         @possible_moves = []
         return array_move
        end
@@ -104,7 +106,7 @@ class Board
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
 
-    @display = nil
+    @display = []
   end
 
   # Removes syntax from array, display horizontal and vertical coordinates
@@ -123,7 +125,7 @@ class Board
       row_count -= 1
     end
     puts '   a  b  c  d  e  f  g  h   '
-    @display = nil
+    @display = []
   end 
 
   # Makes colored clone of board for display purposes
@@ -203,8 +205,6 @@ class Piece
 
   # Don't let pieces go out of bounds (stay within array)
    # Pieces can be placed over enemy pieces / taking enemy piece
-  # multiply black moves by negative 1?
-  # pieces will have helper functions or method that stores movement
 
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
@@ -223,7 +223,7 @@ class Piece
   # Reuse? A friendly piece can't replace a friendly piece, use for not being able to move on top later
   end 
 
-  #def in_bounds?([x,y])
+  #def move_in_bounds?([x,y])
   #  if x.between?(0, 7) && y.between?(0, 7)
   #    true
   #  else
@@ -240,7 +240,7 @@ class Piece
     #pawn_capture = [1, 1], [1, -1]
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
-    pawn_moves = [[1, 0], [2, 0]]
+    pawn_moves = pawn_first_move(piece_coordinates)
     if @chessboard[row][col] == ' ♙ '
       possible_moves = pawn_moves.map do |move|
         [row + move[0], col + move[1]]
@@ -253,31 +253,25 @@ class Piece
     possible_moves
   end
 
-  #def pawn_movement([x,y])
-  #  puts new_pos = [x+1,y]
-    # first_move = [x+2,y]
-
-  #end
-
-  #def pawn_moved? 
-    #handle getting to enemy line?
-    # if white pawn ==?
-    # if black pawn ==?
-  #  @board.each_with_index do |row, index|
-  #    if index == 1 || index == 6
-  #      true
-  #    else
-  #      false
-  #    end
-  #  end
-  #end
+  # Return possible moves depending on pawn position
+  def pawn_first_move(piece_coordinates)
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    pawn_moves = []
+  
+    if row == 1 && @chessboard[row][col] == ' ♙ ' || row == 6 && @chessboard[row][col] == ' ♟︎ '
+      pawn_moves = [[1, 0], [2, 0]]
+    else
+      pawn_moves = [[1, 0]]
+    end
+    pawn_moves
+  end
 
   def en_passant
     # https://en.wikipedia.org/wiki/En_passant
   end
 
   def pawn_promotion
-  
   end
 
 
@@ -346,11 +340,10 @@ class Player
     mode
   end
 
-  # Select game mode
+  
   # get move / handle invalid 
   # error message (not possible moves)
     # Out of bounds, can't move over friendly, moving king into check
-  # -1 on row numbers to match array
 end
 
 
@@ -360,6 +353,7 @@ end
 
 class Computer
   # build simple AI (random legal move, random piece, random location)
+  # Select game mode
 end
 
 board = Board.new
@@ -369,14 +363,21 @@ game = Game.new(board, player, piece)
 game.play_game
 
 
-# Check list
 
+# General steps / Brainstorm
+  # focus on single responsibility
+  # Two players can play against each other or basic AI
+  # Write tests for anything typed into command line repeatedly
+
+# Check list
 # pieces
   # what direction pieces can move in
     # pawn movement 1 or 2
-    # Valid_movement? within piece criteria
-    # move in bounds?
-    # reverse for black
+      # first move
+      # pawn attacking
+  # Check what piece is being selected
+  # Don't let pieces move on friendly pieces
+  # move in bounds?
 # coloring board for selected piece movement
 # learn how to refresh console and update after every move
 # valid move check
