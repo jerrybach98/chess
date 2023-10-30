@@ -26,3 +26,5 @@ Chess is a command-line interface (CLI) game that allows two players to compete 
 
 ### further optimizations / rules
 Adding more draw criteria (Threefold repetition, Fifty-move rule, dead positions)
+simplify logic to less methods
+more advanced AI, recursion, breadth first search for min max

@@ -2,9 +2,6 @@
   # focus on single responsibility
   # Two players can play against each other or basic AI
   # Write tests for anything typed into command line repeatedly
-  # Player 1 white piece goes first
-
-# Psuedo Code:
 class Game
   attr_accessor :chessboard
   def initialize(board, player, piece)
@@ -12,6 +9,7 @@ class Game
     @player = player
     @piece = piece
     @round = 1
+    @possible_moves = []
   end
 
 
@@ -19,36 +17,52 @@ class Game
     introduction
     @player.select_mode
     @board.display_board
+    game_loop()
 
   end
 
   def game_loop
-    loop do
-      play_game
+    2.times do
       prompt_move
       @board.display_board
       @round += 1
-      return # until win condition?
+      #return # until win condition?
     end
   end
 
   def prompt_move 
     puts 'Select a piece'
-    piece_coordinates = prompt_valid_selection()
+    selection = prompt_valid_selection()
     @board.display_board
     
     puts "Select a position"
-    player_input = @player.select_position
-    move = @board.select_piece(player_input)
-    @board.move_piece(piece_coordinates, move)
+    p move = prompt_valid_move()
+    # move can only be equal to move + pawn moves? set up like valid selection
+    @board.move_piece(selection, move)
+    
   end
 
+  # Checks and returns valid array coordinate
   def prompt_valid_selection
     loop do 
-      player_input = @player.select_position
-      piece_coordinates = @board.select_piece(player_input)
-      return piece_coordinates if @piece.friendly_piece?(piece_coordinates, @round)
-      puts "\nInvalid, select a with algebraic notation"
+      # player input gets converted to array coordinates here
+      chess_notation = @player.select_position
+      p array_position = @board.select_piece(chess_notation)
+      p @possible_moves = @piece.pawn(array_position)
+      return array_position if @piece.friendly_piece?(array_position, @round)
+      puts "\nInvalid, enter a piece with algebraic notation"
+    end
+  end
+
+  def prompt_valid_move
+    loop do
+      chess_notation = @player.select_position
+      p array_move = @board.select_piece(chess_notation)
+       if @possible_moves.include?(array_move)
+        @possible_moves = []
+        return array_move
+       end
+      puts "\nInvalid, enter a move with algebraic notation"
     end
   end
 
@@ -66,6 +80,7 @@ class Game
   # announcements
     # when king is in check?
     # pawn promotion prompt
+    # Invalid 
   # game modes selection
     # player vs player
       # get both player names
@@ -96,11 +111,10 @@ class Board
   # Print allows multiple strings on one line
   def display_board
     colored_clone
-
     row_count = 8
+
     puts '   a  b  c  d  e  f  g  h   '
     reverse_board = @display.reverse
-
     reverse_board.each do |row|
       print "#{row_count} "
       print row.join('')
@@ -108,9 +122,7 @@ class Board
       puts  "\n"
       row_count -= 1
     end
-
     puts '   a  b  c  d  e  f  g  h   '
-
     @display = nil
   end 
 
@@ -119,8 +131,6 @@ class Board
     @display = Marshal.load(Marshal.dump(@chessboard))
     color_display
   end
-
-
 
   # Creates checkered pattern using indexes for alternating rows and column colors
   # 30 turns the pieces black, 47 background white, and 100 background grey
@@ -159,7 +169,6 @@ class Board
   end
 
 
-
   # Convert chess notation to array value [subtract 1][ASCII num]
   # Convert ASCII char to num using .ord
   def select_piece(position)
@@ -183,7 +192,6 @@ class Board
   # display possible moves as red dots
   # highlight square of selected piece
   # refresh display when something happens?
-  # when piece moves, set empty square to '  '
 end
 
 class Piece
@@ -201,9 +209,10 @@ class Piece
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    row = piece_coordinates[0] 
-    col = piece_coordinates[1]
-    element = @chessboard[row][col]
+    p row = piece_coordinates[0] 
+    p col = piece_coordinates[1]
+    p element = @chessboard[row][col]
+    p round
     if round.odd? && white.include?(element)
       true
     elsif round.even? && black.include?(element)
@@ -222,14 +231,27 @@ class Piece
   #  end
   #end
 
-  #def pawn([x,y])
+  def check_piece
+    #check what piece is being selected?
+      # if pawn 
+  end
 
-
-    # can move 1 row [x+1][y]
-    # 2 in beginning
-    # attack diagonally with [x+1][y+1] [x+1][y-1]
-    # pawn promotion
-  #end
+  def pawn(piece_coordinates)
+    #pawn_capture = [1, 1], [1, -1]
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    pawn_moves = [[1, 0], [2, 0]]
+    if @chessboard[row][col] == ' ♙ '
+      possible_moves = pawn_moves.map do |move|
+        [row + move[0], col + move[1]]
+      end
+    elsif @chessboard[row][col] == ' ♟︎ '
+      possible_moves = pawn_moves.map do |move|
+        [row - move[0], col - move[1]]
+      end
+    end
+    possible_moves
+  end
 
   #def pawn_movement([x,y])
   #  puts new_pos = [x+1,y]
@@ -251,7 +273,6 @@ class Piece
   #end
 
   def en_passant
-    # implement using round counter?
     # https://en.wikipedia.org/wiki/En_passant
   end
 
@@ -314,8 +335,6 @@ class Player
     end
   end
 
-  #position = "c2"
-  #p convert_position(position)
 
   def select_mode
     loop do
@@ -327,19 +346,11 @@ class Player
     mode
   end
 
-
-
-
   # Select game mode
   # get move / handle invalid 
   # error message (not possible moves)
     # Out of bounds, can't move over friendly, moving king into check
-  # select piece function
-  # Convert A-h to array column numbers
   # -1 on row numbers to match array
-  # Convert input to lowercase / case non sensitive
-  # Switch D1(column + row) to 1D as board is represented as @Board[row][Column]
-  # let players only be able to select their own piece
 end
 
 
@@ -355,16 +366,17 @@ board = Board.new
 piece = Piece.new(board)
 player = Player.new(board, piece)
 game = Game.new(board, player, piece)
-game.game_loop
+game.play_game
 
 
 # Check list
 
-# select valid piece / 
-  #prompt user to rechoose if false
 # pieces
   # what direction pieces can move in
-  # Valid piece move
+    # pawn movement 1 or 2
+    # Valid_movement? within piece criteria
+    # move in bounds?
+    # reverse for black
 # coloring board for selected piece movement
 # learn how to refresh console and update after every move
 # valid move check
