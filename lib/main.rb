@@ -50,7 +50,7 @@ class Game
     loop do 
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.check_piece # check what piece is being selected and return possible moves
+      p @possible_moves = @piece.check_piece(array_position) # check what piece is being selected and return possible moves
       return array_position if @piece.friendly_piece?(array_position, @round)
       puts "\nInvalid, enter a piece with algebraic notation"
     end
@@ -74,6 +74,7 @@ class Game
     puts "Using algebraic notation eg. d2"
     puts "1. Enter the position of the piece you want to select"
     puts "2. Enter where you want to move the piece"
+    @board.display_board
     puts "\nSelect game mode:"
     puts "[1] Player vs Player"
     puts "[2] Player vs Computer"
@@ -241,7 +242,7 @@ class Piece
     if [' ♙ ', ' ♟︎ '].include?(@chessboard[row][col])
       possible_moves = pawn(piece_coordinates)
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
-      #possible_moves = knight(piece_coordinates)
+      possible_moves = knight(piece_coordinates)
     elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
       #possible_moves = bishop(piece_coordinates)
     elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
@@ -290,6 +291,23 @@ class Piece
   end
 
   def pawn_promotion
+  end
+
+  def knight(piece_coordinates)
+    #pawn_capture = [1, 1], [1, -1]
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    knight_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
+    if @chessboard[row][col] == ' ♘ '
+      possible_moves = knight_moves.map do |move|
+        [row + move[0], col + move[1]]
+      end
+    elsif @chessboard[row][col] == ' ♞ '
+      possible_moves = knight_moves.map do |move|
+        [row - move[0], col - move[1]]
+      end
+    end
+    possible_moves
   end
 
 
@@ -395,7 +413,7 @@ game.play_game
   # incoporate out of bounds into traversal array
   # attacking
 # coloring board for selected piece movement
-# learn how to refresh console and update after every move
+# learn how to refresh/clear console and update after every move
 # valid move check
 # edge cases
 # win conditions
