@@ -58,18 +58,7 @@ describe Piece do
   describe 'bishop' do
     subject(:bishop) { described_class.new(board) }
     let(:board) { instance_double(Board) }
-    let(:chessboard) { 
-      [
-        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-        [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
-        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
-      ]
-    }
+    let(:chessboard) { }
     
 
     context 'when bishop is on array position 1, 1' do
@@ -80,6 +69,24 @@ describe Piece do
       it 'returns array of correct possible values' do
         bishop_coordinates = [1, 1]
         expect(bishop.bishop(bishop_coordinates)).to eq([[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [2, 0], [0, 0], [0, 2]])
+      end
+    end
+  end
+
+  describe 'rook' do
+    subject(:rook) { described_class.new(board) }
+    let(:board) { instance_double(Board) }
+    let(:chessboard) { }
+    
+
+    context 'when rook is on array position 1, 1' do
+      before do
+        allow(board).to receive(:chessboard).and_return(chessboard)
+      end
+
+      it 'returns array of correct possible values' do
+        rook_coordinates = [1, 1]
+        expect(rook.rook(rook_coordinates)).to eq([[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [0, 1], [1, 0], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]])
       end
     end
   end

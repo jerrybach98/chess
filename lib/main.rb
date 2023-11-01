@@ -244,9 +244,9 @@ class Piece
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
       possible_moves = knight(piece_coordinates)
     elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
-      #possible_moves = bishop(piece_coordinates)
+      possible_moves = bishop(piece_coordinates)
     elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
-      #possible_moves = rook(piece_coordinates)
+      possible_moves = rook(piece_coordinates)
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
       #possible_moves = king(piece_coordinates)
     elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
@@ -313,27 +313,44 @@ class Piece
   # increment base moves in loop until getting to end of board to get all possible moves
   # row/col intialized in loop resets it to base position for each move
   def bishop(bishop_coordinates)
-    bishop_moves = []
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+    bishop_moves = []
     
     base_moves.each do |move|
-      row = bishop_coordinates[0] 
-      col = bishop_coordinates[1]
+      bishop_moves.concat(line_movement(move, bishop_coordinates))
+    end
+    bishop_moves
+  end
+
+  def rook(rook_coordinates)
+    base_moves = [[1, 0], [-1, 0], [0, -1], [0, 1]]
+    rook_moves = []
+    
+    base_moves.each do |move|
+      rook_moves.concat(line_movement(move, rook_coordinates))
+    end
+    rook_moves
+  end
+
+  def line_movement(move, coordinates)
+    moves = []
+    row = coordinates[0] 
+    col = coordinates[1]
       7.times do
         row = row + move[0]
         col = col + move[1]
         if row.between?(0,7) && col.between?(0,7)
-          bishop_moves << [row, col]
+          moves << [row, col]
         else
           break
         end
       end
-    end
-    # save variable and keeping adding to it until it is between 0, 7
-    # 1,1 start should give: [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [2, 0], [0, 0], [0, 2]]
-
-    bishop_moves
+    moves
   end
+
+  # should give: [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [0, 1], [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]]
+
+  #p rook([1,1])
 
     # Rook
       # move up and down [x+1..7][y+1..7]
