@@ -11,7 +11,7 @@ Chess is a command-line interface (CLI) game that allows two players to compete 
 **Tech Used:** Ruby, RSpec
 
 ### Lessons Learned:
-* Learn how ANSI interacts with terminal
+* Learn how ANSI escape codes interacts with terminal for color
 * Create advanced command line game
 * Breaking code down into parts
 * Applying cumulative experience from past projects Eg. caesar cipher

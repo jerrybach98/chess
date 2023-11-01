@@ -31,7 +31,6 @@ describe Piece do
     }
 
     context 'when given friendly white piece coordinate and round is odd' do
-      
       before do
         allow(board).to receive(:chessboard).and_return(chessboard)
       end
@@ -44,7 +43,6 @@ describe Piece do
     end
 
     context 'when given friendly black piece coordinate and round is even' do
-
       before do
         allow(board).to receive(:chessboard).and_return(chessboard)
       end
@@ -56,6 +54,36 @@ describe Piece do
       end
     end
   end
+
+  describe 'bishop' do
+    subject(:bishop) { described_class.new(board) }
+    let(:board) { instance_double(Board) }
+    let(:chessboard) { 
+      [
+        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+        [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ]
+    }
+    
+
+    context 'when bishop is on array position 1, 1' do
+      before do
+        allow(board).to receive(:chessboard).and_return(chessboard)
+      end
+
+      it 'returns array of correct possible values' do
+        bishop_coordinates = [1, 1]
+        expect(bishop.bishop(bishop_coordinates)).to eq([[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [2, 0], [0, 0], [0, 2]])
+      end
+    end
+  end
+
 end
 
 describe Player do

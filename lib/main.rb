@@ -255,11 +255,11 @@ class Piece
     possible_moves
   end
 
-  def pawn(piece_coordinates)
+  def pawn(pawn_coordinates)
     #pawn_capture = [1, 1], [1, -1]
-    row = piece_coordinates[0] 
-    col = piece_coordinates[1]
-    pawn_moves = pawn_first_move(piece_coordinates)
+    row = pawn_coordinates[0] 
+    col = pawn_coordinates[1]
+    pawn_moves = pawn_first_move(pawn_coordinates)
     if @chessboard[row][col] == ' ♙ '
       possible_moves = pawn_moves.map do |move|
         [row + move[0], col + move[1]]
@@ -273,9 +273,9 @@ class Piece
   end
 
   # Return possible moves depending on pawn position
-  def pawn_first_move(piece_coordinates)
-    row = piece_coordinates[0] 
-    col = piece_coordinates[1]
+  def pawn_first_move(pawn_coordinates)
+    row = pawn_coordinates[0] 
+    col = pawn_coordinates[1]
     pawn_moves = []
   
     if row == 1 && @chessboard[row][col] == ' ♙ ' || row == 6 && @chessboard[row][col] == ' ♟︎ '
@@ -293,10 +293,10 @@ class Piece
   def pawn_promotion
   end
 
-  def knight(piece_coordinates)
+  def knight(knight_coordinates)
     #pawn_capture = [1, 1], [1, -1]
-    row = piece_coordinates[0] 
-    col = piece_coordinates[1]
+    row = knight_coordinates[0] 
+    col = knight_coordinates[1]
     knight_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
     if @chessboard[row][col] == ' ♘ '
       possible_moves = knight_moves.map do |move|
@@ -310,11 +310,31 @@ class Piece
     possible_moves
   end
 
+  # increment base moves in loop until getting to end of board to get all possible moves
+  # row/col intialized in loop resets it to base position for each move
+  def bishop(bishop_coordinates)
+    bishop_moves = []
+    base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
+    
+    base_moves.each do |move|
+      row = bishop_coordinates[0] 
+      col = bishop_coordinates[1]
+      7.times do
+        row = row + move[0]
+        col = col + move[1]
+        if row.between?(0,7) && col.between?(0,7)
+          bishop_moves << [row, col]
+        else
+          break
+        end
+      end
+    end
+    # save variable and keeping adding to it until it is between 0, 7
+    # 1,1 start should give: [[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [2, 0], [0, 0], [0, 2]]
 
-    # Knight
-      # possible_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
-    # Bishop
-      # Diagonal lines: increments of [1,1] [-1,-1] [-1,1] [1, -1] or range?
+    bishop_moves
+  end
+
     # Rook
       # move up and down [x+1..7][y+1..7]
       # Castling?
@@ -392,11 +412,11 @@ class Computer
   # Select game mode
 end
 
-board = Board.new
-piece = Piece.new(board)
-player = Player.new(board, piece)
-game = Game.new(board, player, piece)
-game.play_game
+#board = Board.new
+#piece = Piece.new(board)
+#player = Player.new(board, piece)
+#game = Game.new(board, player, piece)
+#game.play_game
 
 
 
@@ -407,7 +427,7 @@ game.play_game
 
 # Check list
 # pieces
-  # check what piecce is being selected
+  # check what piece is being selected
   # what direction pieces can move in
   # Don't let pieces move on friendly pieces
   # incoporate out of bounds into traversal array
@@ -424,3 +444,4 @@ game.play_game
 # other classes
 # display class?
 # movement / validate moves
+  # edge cases, pawn promotion, en_passant, castling, 
