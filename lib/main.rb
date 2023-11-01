@@ -250,7 +250,7 @@ class Piece
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
       #possible_moves = king(piece_coordinates)
     elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
-      #possible_moves = queen(piece_coordinates)
+      possible_moves = queen(piece_coordinates)
     end
     possible_moves
   end
@@ -332,6 +332,21 @@ class Piece
     rook_moves
   end
 
+  def castling
+    #squares between king and rook are vacant
+    # use a flag if king or rook has moved from their original position?
+  end
+
+  def queen(queen_coordinates)
+    base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1], [1, 0], [-1, 0], [0, -1], [0, 1]]
+    queen_moves = []
+    
+    base_moves.each do |move|
+      queen_moves.concat(line_movement(move, queen_coordinates))
+    end
+    queen_moves
+  end
+
   def line_movement(move, coordinates)
     moves = []
     row = coordinates[0] 
@@ -348,13 +363,13 @@ class Piece
     moves
   end
 
+  p queen([0,0])
+
+
+
   # should give: [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [0, 1], [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]]
 
   #p rook([1,1])
-
-    # Rook
-      # move up and down [x+1..7][y+1..7]
-      # Castling?
     # Queen
       # Combine the moves of rook and bishop
     # King
