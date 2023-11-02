@@ -80,16 +80,6 @@ class Game
     puts "[2] Player vs Computer"
   end
 
-  # announcements
-    # when king is in check?
-    # pawn promotion prompt
-    # Invalid 
-  # game modes selection
-    # player vs player
-      # get both player names
-    # player vs computer
-      # get one player name
-
 end
 
 class Board
@@ -192,9 +182,6 @@ class Board
     @chessboard[old_row][old_col] = '   '
   end
 
-  # display possible moves as red dots
-  # highlight square of selected piece
-  # refresh display when something happens?
 end
 
 class Piece
@@ -203,9 +190,6 @@ class Piece
     @board = board
     @chessboard = board.chessboard
   end
-
-  # Don't let pieces go out of bounds (stay within array)
-   # Pieces can be placed over enemy pieces / taking enemy piece
 
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
@@ -248,9 +232,9 @@ class Piece
     elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
       possible_moves = rook(piece_coordinates)
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
-      #possible_moves = king(piece_coordinates)
-    elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
       possible_moves = queen(piece_coordinates)
+    elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
+      possible_moves = king(piece_coordinates)
     end
     possible_moves
   end
@@ -297,17 +281,16 @@ class Piece
     #pawn_capture = [1, 1], [1, -1]
     row = knight_coordinates[0] 
     col = knight_coordinates[1]
-    knight_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
-    if @chessboard[row][col] == ' ♘ '
-      possible_moves = knight_moves.map do |move|
-        [row + move[0], col + move[1]]
+    base_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
+    knight_moves = []
+
+      base_moves.each do |move|
+        possible_move = [row + move[0], col + move[1]]
+        if move_in_bounds?(possible_move)
+          knight_moves << possible_move
+        end
       end
-    elsif @chessboard[row][col] == ' ♞ '
-      possible_moves = knight_moves.map do |move|
-        [row - move[0], col - move[1]]
-      end
-    end
-    possible_moves
+    knight_moves
   end
 
   # increment base moves in loop until getting to end of board to get all possible moves
@@ -347,6 +330,7 @@ class Piece
     queen_moves
   end
 
+  # Helper function to increment position by base move to move through array in a line
   def line_movement(move, coordinates)
     moves = []
     row = coordinates[0] 
@@ -363,22 +347,21 @@ class Piece
     moves
   end
 
-  p queen([0,0])
+  def king(knight_coordinates)
+    row = knight_coordinates[0] 
+    col = knight_coordinates[1]
+    base_moves = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
+    king_moves = []
 
+    base_moves.each do |move|
+      possible_move = [row + move[0], col + move[1]]
+      if move_in_bounds?(possible_move)
+        king_moves << possible_move
+      end
+    end
+    king_moves
+  end
 
-
-  # should give: [[2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [0, 1], [1, 0], [1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7]]
-
-  #p rook([1,1])
-    # Queen
-      # Combine the moves of rook and bishop
-    # King
-      # If king is in pathway of a piece declare check
-      # If there is no path king can move from check, declare checkmate
-      # Don't let king move into path of enemy piece or into check
-      # any direction by 1
-      # remove king from check by moving king, moving piece in way, or taking the piece
-      # if king can't move anywhere stalemate
 end
 
 class Player
@@ -428,10 +411,6 @@ class Player
     mode
   end
 
-  
-  # get move / handle invalid 
-  # error message (not possible moves)
-    # Out of bounds, can't move over friendly, moving king into check
 end
 
 
@@ -457,19 +436,40 @@ end
   # Two players can play against each other or basic AI
   # Write tests for anything typed into command line repeatedly
 
-# Check list
+# psuedo
 # pieces
-  # check what piece is being selected
-  # what direction pieces can move in
+  # prevent all move generation from going out of bounds: king
   # Don't let pieces move on friendly pieces
-  # incoporate out of bounds into traversal array
-  # attacking
-# coloring board for selected piece movement
-# learn how to refresh/clear console and update after every move
-# valid move check
-# edge cases
+    # might be able to reuse friendly piece logic
+    # remove friendly white pieces from possible move array
+  # incoporate out of bounds into traversal array?
+# attacking
+  # let piece go over enemy piece
+  # line movement pieces can only take first piece in it's path
+    # pawn can't move over a piece
+
 # win conditions
+  #check 
+    # if in pathway of a move
+    # store value of every possible move on board?
+    # Don't let king move itself into a check
+      # putting king into check is illegal move / prompt invalid move
+    # Don't let piece move if it put's king into check
+    # force king to move if in check or block/capture
+    # checkmate if king can't move
+# edge cases
+  # stalemate if king can't move anywhere
+  # pawn promotion / prompt
+  # castling
+  # en passant
+
+# coloring board for selected piece movement
+  # display possible moves as red dots
+  # highlight square of selected piece
+# learn how to refresh/clear console and update after every move
 # simple ai / select game mode
+  # player vs player
+  # player vs computer
 # serializer
 
 
