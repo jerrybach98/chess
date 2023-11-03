@@ -1,5 +1,5 @@
 class Game
-  attr_accessor :chessboard
+  attr_accessor :chessboard, :round
   def initialize(board, player, piece)
     @board = board
     @player = player
@@ -50,7 +50,7 @@ class Game
     loop do 
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.check_piece(array_position) # check what piece is being selected and return possible moves
+      p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
       return array_position if @piece.friendly_piece?(array_position, @round)
       puts "\nInvalid, enter a piece with algebraic notation"
     end
@@ -60,7 +60,7 @@ class Game
     loop do
       chess_notation = @player.select_position
       p array_move = @board.select_piece(chess_notation)
-       if @possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
+       if @possible_moves.include?(array_move) && move_in_bounds?(array_move)
         @possible_moves = []
         return array_move
        end
@@ -185,6 +185,7 @@ class Board
 end
 
 class Piece
+  attr_accessor :round
 
   def initialize(board)
     @board = board
@@ -208,7 +209,6 @@ class Piece
   # Reuse? A friendly piece can't replace a friendly piece, use for not being able to move on top later
   end 
 
-  # alternatively use this method to take out every possible move that's not in bounds instead of the input
   def move_in_bounds?(possible_moves)
     row = possible_moves[0] 
     col = possible_moves[1]
@@ -219,14 +219,14 @@ class Piece
     end
   end
 
-  def check_piece(piece_coordinates)
+  def check_piece(piece_coordinates, round)
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
     #check what piece is being selected?
     if [' ♙ ', ' ♟︎ '].include?(@chessboard[row][col])
       possible_moves = pawn(piece_coordinates)
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
-      possible_moves = knight(piece_coordinates)
+      possible_moves = knight(piece_coordinates, round)
     elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
       possible_moves = bishop(piece_coordinates)
     elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
@@ -277,7 +277,17 @@ class Piece
   def pawn_promotion
   end
 
-  def knight(knight_coordinates)
+  #def not_friendly?(possible_move)
+  #  row = knight_coordinates[0] 
+  #  col = knight_coordinates[1]
+  #  if @chessboard[row][col] == 
+    # return true if it sits on a friendly piece with round count
+    # return false
+ #   end
+ # end
+
+  # figure out how to pass round instance variable to piece class
+  def knight(knight_coordinates, round)
     #pawn_capture = [1, 1], [1, -1]
     row = knight_coordinates[0] 
     col = knight_coordinates[1]
@@ -286,7 +296,7 @@ class Piece
 
       base_moves.each do |move|
         possible_move = [row + move[0], col + move[1]]
-        if move_in_bounds?(possible_move)
+        if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
           knight_moves << possible_move
         end
       end
@@ -438,10 +448,10 @@ end
 
 # psuedo
 # pieces
-  # prevent all move generation from going out of bounds: king
   # Don't let pieces move on friendly pieces
-    # might be able to reuse friendly piece logic
     # remove friendly white pieces from possible move array
+      # start with king/knight/pawn 
+      # implement into line movement method for bishop / rook / queen
   # incoporate out of bounds into traversal array?
 # attacking
   # let piece go over enemy piece

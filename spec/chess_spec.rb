@@ -17,7 +17,7 @@ describe Piece do
   describe 'friendly_piece?' do
     subject(:piece) { described_class.new(board) }
     let(:board) { instance_double(Board) }
-    let(:chessboard) { 
+    let(:chessboard) do
       [
         [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
         [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
@@ -28,7 +28,7 @@ describe Piece do
         [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
-    }
+    end
 
     context 'when given friendly white piece coordinate and round is odd' do
       before do
@@ -76,7 +76,18 @@ describe Piece do
   describe 'knight' do
     subject(:knight) { described_class.new(board) }
     let(:board) { instance_double(Board) }
-    let(:chessboard) { }
+    let(:chessboard) do
+      [
+        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+        [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ]
+    end
     
 
     context 'when knight is on array position 0, 1' do
@@ -84,9 +95,10 @@ describe Piece do
         allow(board).to receive(:chessboard).and_return(chessboard)
       end
 
-      it 'returns array of correct possible values' do
+      it 'returns array of correct possible values not out of bounds or on friendly' do
         knight_coordinates = [0, 1]
-        expect(knight.knight(knight_coordinates)).to eq([[2, 2], [1, 3], [2, 0]])
+        round = 1
+        expect(knight.knight(knight_coordinates, round)).to eq([[2, 2], [2, 0]])
       end
     end
   end
