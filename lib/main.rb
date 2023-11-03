@@ -228,11 +228,11 @@ class Piece
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
       possible_moves = knight(piece_coordinates, round)
     elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
-      possible_moves = bishop(piece_coordinates)
+      possible_moves = bishop(piece_coordinates, round)
     elsif [' ♖ ', ' ♜ '].include?(@chessboard[row][col])
-      possible_moves = rook(piece_coordinates)
+      possible_moves = rook(piece_coordinates, round)
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
-      possible_moves = queen(piece_coordinates)
+      possible_moves = queen(piece_coordinates, round)
     elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
       possible_moves = king(piece_coordinates, round)
     end
@@ -309,22 +309,22 @@ class Piece
 
   # increment base moves in loop until getting to end of board to get all possible moves
   # row/col intialized in loop resets it to base position for each move
-  def bishop(bishop_coordinates)
+  def bishop(bishop_coordinates, round)
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
     bishop_moves = []
     
     base_moves.each do |move|
-      bishop_moves.concat(line_movement(move, bishop_coordinates))
+      bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
     end
     bishop_moves
   end
 
-  def rook(rook_coordinates)
+  def rook(rook_coordinates, round)
     base_moves = [[1, 0], [-1, 0], [0, -1], [0, 1]]
     rook_moves = []
     
     base_moves.each do |move|
-      rook_moves.concat(line_movement(move, rook_coordinates))
+      rook_moves.concat(line_traversal(move, rook_coordinates, round))
     end
     rook_moves
   end
@@ -334,30 +334,33 @@ class Piece
     # use a flag if king or rook has moved from their original position?
   end
 
-  def queen(queen_coordinates)
+  def queen(queen_coordinates, round)
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1], [1, 0], [-1, 0], [0, -1], [0, 1]]
     queen_moves = []
     
     base_moves.each do |move|
-      queen_moves.concat(line_movement(move, queen_coordinates))
+      queen_moves.concat(line_traversal(move, queen_coordinates, round))
     end
     queen_moves
   end
 
   # Helper function to increment position by base move to move through array in a line
-  def line_movement(move, coordinates)
+  # figure out how to stop generation if friendly piece is in the way
+  # switch loop to until friendly piece or between?(0,7) = false
+  def line_traversal(move, coordinates, round)
     moves = []
     row = coordinates[0] 
     col = coordinates[1]
-      7.times do
-        row = row + move[0]
-        col = col + move[1]
-        if row.between?(0,7) && col.between?(0,7)
-          moves << [row, col]
-        else
-          break
-        end
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false
+        moves << new_move
+      else
+        break
       end
+    end
     moves
   end
 
@@ -452,11 +455,10 @@ game.play_game
 
 # psuedo
 # pieces
-  # Deslect a piece if no valid moves + prompt?
   # Don't let pieces move on friendly pieces
-    # remove friendly white pieces from possible move array
-      # start with king/knight/pawn 
+    # remove friendly white piece coordinates from possible move array
       # implement into line movement method for bishop / rook / queen
+  # Deslect a piece if no valid moves + prompt?
   # incoporate out of bounds into traversal array?
 # attacking
   # let piece go over enemy piece
@@ -466,7 +468,7 @@ game.play_game
 # win conditions
   #check 
     # if in pathway of a move
-    # store value of every possible move on board?
+    # store value of every possible white moves and every black moves
     # Don't let king move itself into a check
       # putting king into check is illegal move / prompt invalid move
     # Don't let piece move if it put's king into check
