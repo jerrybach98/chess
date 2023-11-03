@@ -60,7 +60,7 @@ class Game
     loop do
       chess_notation = @player.select_position
       p array_move = @board.select_piece(chess_notation)
-       if @possible_moves.include?(array_move) && move_in_bounds?(array_move)
+       if @possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
         @possible_moves = []
         return array_move
        end
@@ -92,7 +92,7 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
@@ -224,7 +224,7 @@ class Piece
     col = piece_coordinates[1]
     #check what piece is being selected?
     if [' ♙ ', ' ♟︎ '].include?(@chessboard[row][col])
-      possible_moves = pawn(piece_coordinates)
+      possible_moves = pawn(piece_coordinates, round)
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
       possible_moves = knight(piece_coordinates, round)
     elsif [' ♗ ', ' ♝ '].include?(@chessboard[row][col])
@@ -234,26 +234,26 @@ class Piece
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
       possible_moves = queen(piece_coordinates)
     elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
-      possible_moves = king(piece_coordinates)
+      possible_moves = king(piece_coordinates, round)
     end
     possible_moves
   end
 
-  def pawn(pawn_coordinates)
-    #pawn_capture = [1, 1], [1, -1]
+  def pawn(pawn_coordinates, round)
+    
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
-    pawn_moves = pawn_first_move(pawn_coordinates)
-    if @chessboard[row][col] == ' ♙ '
-      possible_moves = pawn_moves.map do |move|
-        [row + move[0], col + move[1]]
-      end
-    elsif @chessboard[row][col] == ' ♟︎ '
-      possible_moves = pawn_moves.map do |move|
-        [row - move[0], col - move[1]]
+    base_moves = pawn_first_move(pawn_coordinates)
+    pawn_moves = []
+
+    base_moves.map do |move|
+      possible_move = [row + move[0], col + move[1]]
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
+        pawn_moves << possible_move
       end
     end
-    possible_moves
+
+    pawn_moves
   end
 
   # Return possible moves depending on pawn position
@@ -262,10 +262,14 @@ class Piece
     col = pawn_coordinates[1]
     pawn_moves = []
   
-    if row == 1 && @chessboard[row][col] == ' ♙ ' || row == 6 && @chessboard[row][col] == ' ♟︎ '
+    if row == 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0], [2, 0]]
-    else
+    elsif row != 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0]]
+    elsif row == 6 && @chessboard[row][col] == ' ♟︎ '
+      pawn_moves = [[-1, 0], [-2, 0]]
+    elsif row != 6 && @chessboard[row][col] == ' ♟︎ '
+      pawn_moves = [[-1, 0]]
     end
     pawn_moves
   end
@@ -357,7 +361,7 @@ class Piece
     moves
   end
 
-  def king(knight_coordinates)
+  def king(knight_coordinates, round)
     row = knight_coordinates[0] 
     col = knight_coordinates[1]
     base_moves = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
@@ -365,7 +369,7 @@ class Piece
 
     base_moves.each do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move)
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
         king_moves << possible_move
       end
     end
@@ -433,11 +437,11 @@ class Computer
   # Select game mode
 end
 
-#board = Board.new
-#piece = Piece.new(board)
-#player = Player.new(board, piece)
-#game = Game.new(board, player, piece)
-#game.play_game
+board = Board.new
+piece = Piece.new(board)
+player = Player.new(board, piece)
+game = Game.new(board, player, piece)
+game.play_game
 
 
 
@@ -448,6 +452,7 @@ end
 
 # psuedo
 # pieces
+  # Deslect a piece if no valid moves + prompt?
   # Don't let pieces move on friendly pieces
     # remove friendly white pieces from possible move array
       # start with king/knight/pawn 
