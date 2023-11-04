@@ -51,8 +51,9 @@ class Game
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
-      return array_position if @piece.friendly_piece?(array_position, @round)
-      puts "\nInvalid, enter a piece with algebraic notation"
+      # if possible moves.empty? when selecting, deselect the piece
+      return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
+      puts "\nInvalid selection, enter a valid piece with algebraic notation"
     end
   end
 
@@ -455,9 +456,6 @@ game.play_game
 
 # psuedo
 # pieces
-  # Don't let pieces move on friendly pieces
-    # remove friendly white piece coordinates from possible move array
-      # implement into line movement method for bishop / rook / queen
   # Deslect a piece if no valid moves + prompt?
   # incoporate out of bounds into traversal array?
 # attacking
