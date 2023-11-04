@@ -102,12 +102,12 @@ class Board
   def initialize
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+      ['   ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
 
@@ -222,7 +222,21 @@ class Piece
     else
       false
     end
-  # Reuse? A friendly piece can't replace a friendly piece, use for not being able to move on top later
+  end 
+
+  def enemy_piece?(piece_coordinates, round)
+    white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
+    black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    element = @chessboard[row][col]
+    if round.even? && white.include?(element)
+      true
+    elsif round.odd? && black.include?(element)
+      true
+    else
+      false
+    end
   end 
 
   def move_in_bounds?(possible_moves)
@@ -361,8 +375,7 @@ class Piece
   end
 
   # Helper function to increment position by base move to move through array in a line
-  # figure out how to stop generation if friendly piece is in the way
-  # switch loop to until friendly piece or between?(0,7) = false
+  # Stop generation once on enemy piece but include first one
   def line_traversal(move, coordinates, round)
     moves = []
     row = coordinates[0] 
@@ -371,8 +384,11 @@ class Piece
       row = row + move[0]
       col = col + move[1]
       new_move = [row, col]
-      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
         moves << new_move
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round)
+        moves << new_move
+        break
       else
         break
       end
@@ -456,11 +472,11 @@ class Computer
   # Select game mode
 end
 
-board = Board.new
-piece = Piece.new(board)
-player = Player.new(board, piece)
-game = Game.new(board, player, piece)
-game.play_game
+#board = Board.new
+#piece = Piece.new(board)
+#player = Player.new(board, piece)
+#game = Game.new(board, player, piece)
+#game.play_game
 
 
 

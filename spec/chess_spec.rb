@@ -55,6 +55,35 @@ describe Piece do
     end
   end
 
+  describe 'enemy_piece?' do
+    subject(:enemy) { described_class.new(board) }
+    let(:board) { instance_double(Board) }
+    let(:chessboard) do
+      [
+        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+        [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ]
+    end
+
+    context 'when given enemy black piece coordinate and round is odd' do
+      before do
+        allow(board).to receive(:chessboard).and_return(chessboard)
+      end
+
+      it 'returns true' do
+        piece_coordinates = [7, 0]
+        round = 1
+        expect(enemy.enemy_piece?(piece_coordinates, round)).to eq(true)
+      end
+    end
+  end
+
   describe 'bishop' do
     subject(:bishop) { described_class.new(board) }
     let(:board) { instance_double(Board) }
@@ -80,7 +109,7 @@ describe Piece do
       it 'returns array of correct possible values' do
         bishop_coordinates = [1, 1]
         round = 1
-        expect(bishop.bishop(bishop_coordinates, round)).to eq([[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [7, 7], [2, 0]])
+        expect(bishop.bishop(bishop_coordinates, round)).to eq([[2, 2], [3, 3], [4, 4], [5, 5], [6, 6], [2, 0]])
       end
     end
   end
@@ -121,8 +150,8 @@ describe Piece do
     let(:chessboard) do
       [
         [' ♖ ', '   ', '   ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-        ['   ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-        [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟︎ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
