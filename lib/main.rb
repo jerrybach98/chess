@@ -6,6 +6,18 @@ class Game
     @piece = piece
     @round = 1
     @possible_moves = []
+    @notation_moves = [] # for faster testing
+  end
+
+  # For faster puts testing
+  def algebraic_possible_moves(moves)
+    new_moves = moves.map do |move|
+      array = move.reverse
+      row = (array[0] + 97).chr
+      col = (array[1] + 1).to_s
+      notation = [row, col] * ""
+    end
+    new_moves
   end
 
 
@@ -51,6 +63,7 @@ class Game
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
+      p @notation_moves = algebraic_possible_moves(@possible_moves)
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
@@ -92,9 +105,9 @@ class Board
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      ['   ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
 
@@ -193,6 +206,8 @@ class Piece
     @chessboard = board.chessboard
   end
 
+  # Used to identify that the correct colored piece is being selected
+  # Also used in possible move generation 
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
@@ -456,12 +471,10 @@ game.play_game
 
 # psuedo
 # pieces
-  # Deslect a piece if no valid moves + prompt?
-  # incoporate out of bounds into traversal array?
-# attacking
-  # let piece go over enemy piece
-  # line movement pieces can only take first piece in it's path
-    # pawn can't move over a piece
+  # attacking
+    # line movement pieces can only take first piece in it's path
+      # convert pawn into line movement?
+    # pawn movement diagonally
 
 # win conditions
   #check 
