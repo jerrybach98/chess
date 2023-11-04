@@ -102,9 +102,9 @@ class Board
   def initialize
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      ['   ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+      ['   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', ' ♟︎ ', ' ♟︎ ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
@@ -140,6 +140,7 @@ class Board
   end
 
   # Creates checkered pattern using indexes for alternating rows and column colors
+  # Add ANSI color codes to string to display color
   # 30 turns the pieces black, 47 background white, and 100 background grey
   def color_display
     @display.each_with_index do |row, index|
@@ -269,8 +270,9 @@ class Piece
     possible_moves
   end
 
+  # line traversal returns a nested array, so we use concat to append the two arrays together
+  # if enemy piece is 1,0 in possible move array, clear the array
   def pawn(pawn_coordinates, round)
-    
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
     base_moves = pawn_first_move(pawn_coordinates)
@@ -278,7 +280,7 @@ class Piece
 
     base_moves.map do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false #Prevent moving on enemy pieces
         pawn_moves << possible_move
       end
     end
@@ -286,19 +288,21 @@ class Piece
     pawn_moves
   end
 
-  # Return possible moves depending on pawn position
+
+  # Helper function to return possible pawn moves depending on pawn position
+  # Pawn can only move two squares if it's first move and there is nothing blocking it's path
   def pawn_first_move(pawn_coordinates)
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
     pawn_moves = []
   
-    if row == 1 && @chessboard[row][col] == ' ♙ '
+    if row == 1 && @chessboard[row][col] == ' ♙ ' && @chessboard[row+1][col] == '   '
       pawn_moves = [[1, 0], [2, 0]]
     elsif row != 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0]]
     elsif row == 6 && @chessboard[row][col] == ' ♟︎ '
       pawn_moves = [[-1, 0], [-2, 0]]
-    elsif row != 6 && @chessboard[row][col] == ' ♟︎ '
+    elsif row != 6 && @chessboard[row][col] == ' ♟︎ ' && @chessboard[row-1][col] == '   '
       pawn_moves = [[-1, 0]]
     end
     pawn_moves
@@ -472,11 +476,11 @@ class Computer
   # Select game mode
 end
 
-#board = Board.new
-#piece = Piece.new(board)
-#player = Player.new(board, piece)
-#game = Game.new(board, player, piece)
-#game.play_game
+board = Board.new
+piece = Piece.new(board)
+player = Player.new(board, piece)
+game = Game.new(board, player, piece)
+game.play_game
 
 
 
