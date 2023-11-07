@@ -9,13 +9,17 @@ class Game
     @notation_moves = [] # for faster testing
   end
 
-  # For faster puts testing
+  # Show notation For faster puts testing
   def algebraic_possible_moves(moves)
-    new_moves = moves.map do |move|
-      array = move.reverse
-      row = (array[0] + 97).chr
-      col = (array[1] + 1).to_s
-      notation = [row, col] * ""
+    if moves == nil 
+      return 
+    else
+      new_moves = moves.map do |move|
+        array = move.reverse
+        row = (array[0] + 97).chr
+        col = (array[1] + 1).to_s
+        notation = [row, col] * ""
+      end
     end
     new_moves
   end
@@ -103,8 +107,8 @@ class Board
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', ' ♟︎ ', ' ♟︎ ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
@@ -212,10 +216,10 @@ class Piece
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    p row = piece_coordinates[0] 
-    p col = piece_coordinates[1]
-    p element = @chessboard[row][col]
-    p round
+    row = piece_coordinates[0] 
+    col = piece_coordinates[1]
+    element = @chessboard[row][col]
+    round
     if round.odd? && white.include?(element)
       true
     elsif round.even? && black.include?(element)
@@ -275,18 +279,39 @@ class Piece
   def pawn(pawn_coordinates, round)
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
-    base_moves = pawn_first_move(pawn_coordinates)
     pawn_moves = []
+
+    base_moves = pawn_first_move(pawn_coordinates)
+
+    p pawn_moves.concat(pawn_attacks(pawn_coordinates, round))
 
     base_moves.map do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false #Prevent moving on enemy pieces
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false 
         pawn_moves << possible_move
       end
     end
 
     pawn_moves
   end
+
+  # getting out of bounds value causing nil
+  # if additive results are inbounds, continue to enemy piece?
+  def pawn_attacks(pawn_coordinates, round)
+    p row = pawn_coordinates[0] 
+    p col = pawn_coordinates[1]
+    attack_coordinates = []
+
+    p attacks = [[row+1, col+1], [row+1, col-1], [row-1, col+1], [row-1, col-1]]
+
+    attacks.map do |attack|
+      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false && enemy_piece?(attack, round) == true
+        attack_coordinates << attack
+      end
+    end
+    attack_coordinates
+  end
+
 
 
   # Helper function to return possible pawn moves depending on pawn position
@@ -300,9 +325,9 @@ class Piece
       pawn_moves = [[1, 0], [2, 0]]
     elsif row != 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0]]
-    elsif row == 6 && @chessboard[row][col] == ' ♟︎ '
+    elsif row == 6 && @chessboard[row][col] == ' ♟︎ ' && @chessboard[row-1][col] == '   '
       pawn_moves = [[-1, 0], [-2, 0]]
-    elsif row != 6 && @chessboard[row][col] == ' ♟︎ ' && @chessboard[row-1][col] == '   '
+    elsif row != 6 && @chessboard[row][col] == ' ♟︎ ' 
       pawn_moves = [[-1, 0]]
     end
     pawn_moves
@@ -492,8 +517,6 @@ game.play_game
 # psuedo
 # pieces
   # attacking
-    # line movement pieces can only take first piece in it's path
-      # convert pawn into line movement?
     # pawn movement diagonally
 
 # win conditions
