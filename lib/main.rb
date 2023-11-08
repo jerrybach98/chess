@@ -2,6 +2,7 @@ class Game
   attr_accessor :chessboard, :round
   def initialize(board, player, piece)
     @board = board
+    @chessboard = board.chessboard
     @player = player
     @piece = piece
     @round = 1
@@ -66,8 +67,8 @@ class Game
   # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
-      indexes = @board.board_indexes
-      p white_moves(indexes)
+      #indexes = @board.board_indexes
+      #p algebraic_possible_moves(white_attacks(indexes))
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
@@ -102,19 +103,26 @@ class Game
     puts "[2] Player vs Computer"
   end
 
-  def white_moves
-
-
+  def white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
-    white_coordinates = []
+    pawn = [' ♙ ']
 
-  
-
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if white.include?(element)
+        @white_moves.concat(@piece.check_piece(index, @round))
+      elsif pawn.include?(element)
+        @white_moves.concat(@piece.pawn_attacks(index, @round))
+      end
+    end
       # return coordinates of every board
       # each do, run coordinates through check_piece method
       # add possible moves 
 
     # repeat for pawn but dirrectly call pawn_attack
+    @white_moves
   end
 
 end
@@ -126,7 +134,7 @@ class Board
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
@@ -312,16 +320,15 @@ class Piece
     possible_moves
   end
 
-  # line traversal returns a nested array, so we use concat to append the two arrays together
-  # if enemy piece is 1,0 in possible move array, clear the array
+  # Concat vertical movement and diagonal movement separately as they require different conditions
   def pawn(pawn_coordinates, round)
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
     pawn_moves = []
 
+    attacks = pawn_attacks(pawn_coordinates, round)
     base_moves = pawn_first_move(pawn_coordinates)
-
-    p pawn_moves.concat(pawn_attacks(pawn_coordinates, round))
+    pawn_moves.concat(pawn_attack_range(attacks, round))
 
     base_moves.map do |move|
       possible_move = [row + move[0], col + move[1]]
@@ -333,24 +340,33 @@ class Piece
     pawn_moves
   end
 
-  # getting out of bounds value causing nil
-  # if additive results are inbounds, continue to enemy piece?
+  # Creates list of possible pawn attack movement
   def pawn_attacks(pawn_coordinates, round)
-    p row = pawn_coordinates[0] 
-    p col = pawn_coordinates[1]
+    row = pawn_coordinates[0] 
+    col = pawn_coordinates[1]
     attack_coordinates = []
 
-    p attacks = [[row+1, col+1], [row+1, col-1], [row-1, col+1], [row-1, col-1]]
+    attacks = [[row+1, col+1], [row+1, col-1], [row-1, col+1], [row-1, col-1]]
 
     attacks.map do |attack|
-      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false && enemy_piece?(attack, round) == true
+      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false #&& enemy_piece?(attack, round) == true
         attack_coordinates << attack
       end
     end
     attack_coordinates
   end
 
+  # check if enemy units are in pawn attack coordinates
+  def pawn_attack_range(attacks, round)
+    diagonal_attacks = []
 
+    attacks.each do |attack|
+      if enemy_piece?(attack, round) == true
+        diagonal_attacks << attack
+      end
+    end
+    diagonal_attacks
+  end
 
   # Helper function to return possible pawn moves depending on pawn position
   # Pawn can only move two squares if it's first move and there is nothing blocking it's path
