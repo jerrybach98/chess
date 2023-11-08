@@ -259,3 +259,13 @@ describe Player do
   end
 end
 
+#check for chceck after each move
+  # store value of every possible white moves and every black moves
+    # 2 instance variables, black and white
+    # use the chess board
+    # breakdown chess board into array posiitions
+      # if white_piece, add array coordinates / or get array coordinates of every position?
+    # each do loop () through coordinates with check_piece method
+    # array << each possible move
+    # pawn is an edge case, separate pawn, if pawn call pawn_attacks directly on it
+    # set it to nil and update after every move

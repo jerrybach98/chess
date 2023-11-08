@@ -7,6 +7,8 @@ class Game
     @round = 1
     @possible_moves = []
     @notation_moves = [] # for faster testing
+    @white_moves = []
+    @black_moves = []
   end
 
   # Show notation For faster puts testing
@@ -64,6 +66,8 @@ class Game
   # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
+      indexes = @board.board_indexes
+      p white_moves(indexes)
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
@@ -98,6 +102,21 @@ class Game
     puts "[2] Player vs Computer"
   end
 
+  def white_moves
+
+
+    white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
+    white_coordinates = []
+
+  
+
+      # return coordinates of every board
+      # each do, run coordinates through check_piece method
+      # add possible moves 
+
+    # repeat for pawn but dirrectly call pawn_attack
+  end
+
 end
 
 class Board
@@ -117,6 +136,25 @@ class Board
 
     @display = []
   end
+
+  # returns index of every possible board position
+  def board_indexes
+    row = 0
+    col = 0
+    board_indexes = []
+
+    until row == 8
+      8.times do
+        board_indexes << [row, col]
+        col += 1
+      end
+      row += 1
+      col = 0
+    end
+    board_indexes
+  end
+
+
 
   # Removes syntax from array, display horizontal and vertical coordinates
   # Print allows multiple strings on one line
@@ -516,23 +554,34 @@ game.play_game
 
 # psuedo
 # pieces
-  # attacking
-    # pawn movement diagonally
 
 # win conditions
-  #check 
-    # if in pathway of a move
+  #check for chceck after each move
     # store value of every possible white moves and every black moves
-    # Don't let king move itself into a check
-      # putting king into check is illegal move / prompt invalid move
+      # 2 instance variables, black and white
+      # use the chess board
+      # breakdown chess board into array posiitions
+        # if white_piece, add array coordinates
+      # each do loop () through coordinates
+      # << each possible move
+      # check if it works with pawn
+
+    # Don't let king move itself into a check (remove any possible moves if it matches from all possible enemy moves)
     # Don't let piece move if it put's king into check
+      # Implementation?
     # force king to move if in check or block/capture
-    # checkmate if king can't move
+    # checkmate if king can't move/block/capture
+
 # edge cases
-  # stalemate if king can't move anywhere
+  # stalemate if king can't move anywhere / draw
   # pawn promotion / prompt
-  # castling
+  # castling, use flags / prompt
+    # add rook to possible move list? if flag
+    # select / king / select castle
+    # rook next to king starting position / king on outside
+    # all rows empty
   # en passant
+
 
 # coloring board for selected piece movement
   # display possible moves as red dots
