@@ -38,9 +38,13 @@ class Game
 
   def game_loop
     loop do
+      reset_game_state()
+      all_possible_attacks()
       prompt_move
       @board.display_board
       @round += 1
+      reset_game_state()
+      all_possible_attacks()
       #return if win condition
     end
   end
@@ -67,8 +71,6 @@ class Game
   # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
-      #indexes = @board.board_indexes
-      #p algebraic_possible_moves(white_attacks(indexes))
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
@@ -84,7 +86,7 @@ class Game
       chess_notation = @player.select_position
       p array_move = @board.select_piece(chess_notation)
        if @possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
-        @possible_moves = []
+        p "Round number: #{@round}"
         return array_move
        end
       puts "\nInvalid, enter a move with algebraic notation"
@@ -107,22 +109,57 @@ class Game
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
 
+    sub_round = 1
+
     indexes.each do |index|
       row = index[0]
       col = index[1]
       element = @chessboard[row][col]
       if white.include?(element)
-        @white_moves.concat(@piece.check_piece(index, @round))
+        @white_moves.concat(@piece.check_piece(index, sub_round))
       elsif pawn.include?(element)
-        @white_moves.concat(@piece.pawn_attacks(index, @round))
+        @white_moves.concat(@piece.pawn_attacks(index, sub_round))
       end
     end
-      # return coordinates of every board
-      # each do, run coordinates through check_piece method
-      # add possible moves 
 
-    # repeat for pawn but dirrectly call pawn_attack
     @white_moves
+  end
+
+    # stub the round method to get all available attack positions
+    # succesfully shows all possible attacks on empty space and enemy units
+    # additionally, show attacks on friendly pieces, so king can't capture
+  def black_attacks(indexes)
+    black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    pawn = [' ♟︎ ']
+
+    sub_round = 2
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if black.include?(element)
+        @black_moves.concat(@piece.check_piece(index, sub_round))
+      elsif pawn.include?(element)
+        @black_moves.concat(@piece.pawn_attacks(index, sub_round))
+      end
+    end
+
+    @black_moves
+  end
+
+  def all_possible_attacks
+    indexes = @board.board_indexes
+    p white = algebraic_possible_moves(white_attacks(indexes))
+    p black = algebraic_possible_moves(black_attacks(indexes))
+    #p "White moves #{white}"
+    #p "Black Moves #{black}"
+  end
+
+  def reset_game_state
+    @possible_moves = []
+    @white_moves = []
+    @black_moves = []
   end
 
 end
@@ -132,16 +169,16 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', '   ', '   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
-
+  
     @display = []
   end
 
@@ -259,6 +296,7 @@ class Piece
 
   # Used to identify that the correct colored piece is being selected
   # Also used in possible move generation 
+  # Returns false if not friendly or blank square
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
@@ -325,9 +363,9 @@ class Piece
     row = pawn_coordinates[0] 
     col = pawn_coordinates[1]
     pawn_moves = []
+    base_moves = pawn_first_move(pawn_coordinates)
 
     attacks = pawn_attacks(pawn_coordinates, round)
-    base_moves = pawn_first_move(pawn_coordinates)
     pawn_moves.concat(pawn_attack_range(attacks, round))
 
     base_moves.map do |move|
@@ -346,13 +384,18 @@ class Piece
     col = pawn_coordinates[1]
     attack_coordinates = []
 
-    attacks = [[row+1, col+1], [row+1, col-1], [row-1, col+1], [row-1, col-1]]
+    if @chessboard[row][col] == ' ♙ '
+      attacks = [[row+1, col+1], [row+1, col-1]]
+    elsif @chessboard[row][col] == ' ♟︎ '
+      attacks = [[row-1, col+1], [row-1, col-1]]
+    end
 
     attacks.map do |attack|
-      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false #&& enemy_piece?(attack, round) == true
+      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false 
         attack_coordinates << attack
       end
     end
+    
     attack_coordinates
   end
 

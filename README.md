@@ -30,3 +30,4 @@ Adding more draw criteria (Threefold repetition, Fifty-move rule, dead positions
 simplify logic to less methods
 more advanced AI, recursion, breadth first search for min max
 flipping board
+Reducing redundant code for black and white pieces
