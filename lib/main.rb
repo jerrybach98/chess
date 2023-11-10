@@ -108,44 +108,51 @@ class Game
   def white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
+    sub_round = 0
 
-    sub_round = 1
-
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      element = @chessboard[row][col]
-      if white.include?(element)
-        @white_moves.concat(@piece.check_piece(index, sub_round))
-      elsif pawn.include?(element)
-        @white_moves.concat(@piece.pawn_attacks(index, sub_round))
+    2.times do
+    sub_round += 1
+      indexes.each do |index|
+        row = index[0]
+        col = index[1]
+        element = @chessboard[row][col]
+        if white.include?(element)
+          @white_moves.concat(@piece.check_piece(index, sub_round))
+        elsif pawn.include?(element)
+          @white_moves.concat(@piece.pawn_attacks(index, sub_round))
+        end
       end
     end
 
-    @white_moves
+    moves = @white_moves.uniq
   end
 
     # stub the round method to get all available attack positions
     # succesfully shows all possible attacks on empty space and enemy units
-    # additionally, show attacks on friendly pieces, so king can't capture
+    # additionally, show attacks on friendly pieces, so enemy king can't move on/capture friendly piece that is being guarded
+    # remove duplicates values?
+    # figure out how to run both methods two times while changing sub_round values
+    # two times do + 1?
   def black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     pawn = [' ♟︎ ']
+    sub_round = 0
 
-    sub_round = 2
-
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      element = @chessboard[row][col]
-      if black.include?(element)
-        @black_moves.concat(@piece.check_piece(index, sub_round))
-      elsif pawn.include?(element)
-        @black_moves.concat(@piece.pawn_attacks(index, sub_round))
+    2.times do
+    sub_round += 1
+      indexes.each do |index|
+        row = index[0]
+        col = index[1]
+        element = @chessboard[row][col]
+        if black.include?(element)
+          @black_moves.concat(@piece.check_piece(index, sub_round))
+        elsif pawn.include?(element)
+          @black_moves.concat(@piece.pawn_attacks(index, sub_round))
+        end
       end
     end
 
-    @black_moves
+    moves = @black_moves.uniq
   end
 
   def all_possible_attacks
