@@ -260,16 +260,18 @@ describe Player do
 end
 
 #check for chceck after each move
-  # store value of every possible white moves and every black moves
-    # 2 instance variables, black and white
-    # use the chess board
-    # breakdown chess board into array posiitions
-      # if white_piece, add array coordinates / or get array coordinates of every position?
-    # each do loop () through coordinates with check_piece method
-    # array << each possible move
-    # pawn is an edge case, separate pawn, if pawn call pawn_attacks directly on it
-    # set it to nil and update after every move
-
+  # Don't let king move itself into a check 
+    # pass white_moves/black_moves
+    # illegal moves for king
+    # Can't move on protected piece or in path
+    # remove king possible moves referenced to all_possible_attacks?
+  
+  
+  # Don't let piece move if it put's king into check
+    # Implementation?
+  # force king to move if in check or block/capture
+  # checkmate if king can't move/block/capture
+  
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],

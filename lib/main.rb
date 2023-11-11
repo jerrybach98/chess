@@ -40,7 +40,7 @@ class Game
     loop do
       reset_game_state()
       all_possible_attacks()
-      prompt_move
+      prompt_move()
       @board.display_board
       @round += 1
       reset_game_state()
@@ -73,7 +73,7 @@ class Game
     loop do 
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.check_piece(array_position, @round) # check what piece is being selected and return possible moves
+      p @possible_moves = @piece.check_piece(array_position, @round, @black_moves, @white_moves) # check what piece is being selected and return possible moves
       p @notation_moves = algebraic_possible_moves(@possible_moves)
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
@@ -105,6 +105,8 @@ class Game
     puts "[2] Player vs Computer"
   end
 
+  # Switch round variable to influence round logic allowing generation of moves on enemy pieces and friendly protected pieces
+  # Pawn attacks are edge cases since they attack different from traversal
   def white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
@@ -117,7 +119,7 @@ class Game
         col = index[1]
         element = @chessboard[row][col]
         if white.include?(element)
-          @white_moves.concat(@piece.check_piece(index, sub_round))
+          @white_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
         elsif pawn.include?(element)
           @white_moves.concat(@piece.pawn_attacks(index, sub_round))
         end
@@ -127,12 +129,7 @@ class Game
     moves = @white_moves.uniq
   end
 
-    # stub the round method to get all available attack positions
-    # succesfully shows all possible attacks on empty space and enemy units
-    # additionally, show attacks on friendly pieces, so enemy king can't move on/capture friendly piece that is being guarded
-    # remove duplicates values?
-    # figure out how to run both methods two times while changing sub_round values
-    # two times do + 1?
+
   def black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     pawn = [' ♟︎ ']
@@ -145,7 +142,7 @@ class Game
         col = index[1]
         element = @chessboard[row][col]
         if black.include?(element)
-          @black_moves.concat(@piece.check_piece(index, sub_round))
+          @black_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
         elsif pawn.include?(element)
           @black_moves.concat(@piece.pawn_attacks(index, sub_round))
         end
@@ -155,12 +152,13 @@ class Game
     moves = @black_moves.uniq
   end
 
+    # shows all possible attacks on empty spaces, enemy units, and protected pieces
   def all_possible_attacks
     indexes = @board.board_indexes
-    p white = algebraic_possible_moves(white_attacks(indexes))
-    p black = algebraic_possible_moves(black_attacks(indexes))
-    #p "White moves #{white}"
-    #p "Black Moves #{black}"
+    white = algebraic_possible_moves(white_attacks(indexes))
+    black = algebraic_possible_moves(black_attacks(indexes))
+    puts "White moves #{white}"
+    puts "Black Moves #{black}"
   end
 
   def reset_game_state
@@ -181,8 +179,8 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♖ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♔ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
@@ -345,7 +343,7 @@ class Piece
     end
   end
 
-  def check_piece(piece_coordinates, round)
+  def check_piece(piece_coordinates, round, black_moves, white_moves)
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
     #check what piece is being selected?
@@ -360,7 +358,7 @@ class Piece
     elsif [' ♕ ', ' ♛ '].include?(@chessboard[row][col])
       possible_moves = queen(piece_coordinates, round)
     elsif [' ♔ ', ' ♚ '].include?(@chessboard[row][col])
-      possible_moves = king(piece_coordinates, round)
+      possible_moves = king(piece_coordinates, round, black_moves, white_moves)
     end
     possible_moves
   end
@@ -444,18 +442,7 @@ class Piece
   def pawn_promotion
   end
 
-  #def not_friendly?(possible_move)
-  #  row = knight_coordinates[0] 
-  #  col = knight_coordinates[1]
-  #  if @chessboard[row][col] == 
-    # return true if it sits on a friendly piece with round count
-    # return false
- #   end
- # end
-
-  # figure out how to pass round instance variable to piece class
   def knight(knight_coordinates, round)
-    #pawn_capture = [1, 1], [1, -1]
     row = knight_coordinates[0] 
     col = knight_coordinates[1]
     base_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
@@ -492,11 +479,6 @@ class Piece
     rook_moves
   end
 
-  def castling
-    #squares between king and rook are vacant
-    # use a flag if king or rook has moved from their original position?
-  end
-
   def queen(queen_coordinates, round)
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1], [1, 0], [-1, 0], [0, -1], [0, 1]]
     queen_moves = []
@@ -529,7 +511,7 @@ class Piece
     moves
   end
 
-  def king(knight_coordinates, round)
+  def king(knight_coordinates, round, black_moves, white_moves)
     row = knight_coordinates[0] 
     col = knight_coordinates[1]
     base_moves = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
@@ -537,11 +519,27 @@ class Piece
 
     base_moves.each do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && legal_move?(possible_move, round, black_moves, white_moves) == true
         king_moves << possible_move
       end
     end
     king_moves
+  end
+
+  # Prevent king from making illegal move and put itself into check
+  def legal_move?(move, round, black_moves, white_moves)
+    if round.odd? && black_moves.include?(move) == false
+      true
+    elsif round.even? && white_moves.include?(move) == false
+      true
+    else
+      false
+    end
+  end
+
+  def castling
+    #squares between king and rook are vacant
+    # use a flag if king or rook has moved from their original position?
   end
 
 end
@@ -619,19 +617,10 @@ game.play_game
   # Write tests for anything typed into command line repeatedly
 
 # psuedo
-# pieces
 
+# PIECES
 # win conditions
-  #check for chceck after each move
-    # store value of every possible white moves and every black moves
-      # 2 instance variables, black and white
-      # use the chess board
-      # breakdown chess board into array posiitions
-        # if white_piece, add array coordinates
-      # each do loop () through coordinates
-      # << each possible move
-      # check if it works with pawn
-
+  #check for check after each move
     # Don't let king move itself into a check (remove any possible moves if it matches from all possible enemy moves)
     # Don't let piece move if it put's king into check
       # Implementation?
@@ -652,7 +641,7 @@ game.play_game
 # coloring board for selected piece movement
   # display possible moves as red dots
   # highlight square of selected piece
-# learn how to refresh/clear console and update after every move
+# learn how to refresh/clear console and update after every move?
 # simple ai / select game mode
   # player vs player
   # player vs computer
