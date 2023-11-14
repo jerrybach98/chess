@@ -166,7 +166,6 @@ class Game
     @white_moves = []
     @black_moves = []
   end
-
 end
 
 class Board
@@ -177,11 +176,11 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♔ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -297,6 +296,8 @@ class Piece
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
+    @white_pins = []
+    @black_pins = []
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -485,12 +486,17 @@ class Piece
     
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
+      # add pin check 
+      # add line traversal to an instance variable
+      # add coordinates to that array
     end
     queen_moves
   end
 
   # Helper function to increment position by base move to move through array in a line
-  # Stop generation once on enemy piece but include first one
+  # first condition only moves on blanks
+  # Break generation once possible move traverses over the first enemy piece
+  # add helper method to check if king is on same line?
   def line_traversal(move, coordinates, round)
     moves = []
     row = coordinates[0] 
@@ -511,9 +517,9 @@ class Piece
     moves
   end
 
-  def king(knight_coordinates, round, black_moves, white_moves)
-    row = knight_coordinates[0] 
-    col = knight_coordinates[1]
+  def king(king_coordinates, round, black_moves, white_moves)
+    row = king_coordinates[0] 
+    col = king_coordinates[1]
     base_moves = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
     king_moves = []
 
@@ -537,10 +543,69 @@ class Piece
     end
   end
 
+  # iterates through board returning line of attack
+  def line_of_attack(move, coordinates, round)
+    moves = []
+    row = coordinates[0] 
+    col = coordinates[1]
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
+        moves << new_move
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round)
+        moves << new_move
+      else
+        break
+      end
+    end
+    # if moves contains king return moves && only has two pieces
+    moves
+  end
+
+  # true if that line has a king 
+  # true if that line has only 1 enemy piece
+  # two true's result in a pin
+  # if round is odd black_pins, if round is even white_pins
+  def pin?(moves, round)
+
+  end
+
   def castling
     #squares between king and rook are vacant
     # use a flag if king or rook has moved from their original position?
   end
+
+  #def white_pinners(indexes)
+   # pinners = [' ♗ ', ' ♖ ', ' ♕ ']
+   # pinners_positions = []
+
+  #  indexes.each do |index|
+  #    row = index[0]
+  #    col = index[1]
+  #    piece = @chessboard[row][col]
+  #    if pinners.include?(piece)
+  #      pinners_positions << [row, col]
+  #    end
+  #  end
+  #  pinners_positions
+  #end
+
+  #def black_pins(indexes)
+
+  #end
+
+  #def all_possible_pins(indexes)
+  #  indexes = @board.board_indexes
+  #  white_pinners = white_pinners(indexes)
+  #  line_of_attack(white_pinners)
+
+    #white = algebraic_possible_moves(white_pins(indexes))
+    #black = algebraic_possible_moves(black_pins(indexes))
+    #puts "White moves #{white}"
+    #puts "Black Moves #{black}"
+  #end
 
 end
 
@@ -621,15 +686,25 @@ game.play_game
 # PIECES
 # win conditions
   #check for check after each move
-    # Don't let king move itself into a check (remove any possible moves if it matches from all possible enemy moves)
-    # Don't let piece move if it put's king into check
-      # Implementation?
-    # force king to move if in check or block/capture
-    # checkmate if king can't move/block/capture
+  # implement flag for check? if king is in range of move'
+    # Can't move friendly piece if king is being pinned / put into check
+    # aboslute pin == false
+    # Enemy line movement if friendly piece then king
+    # can the piece can still move along line of pin 
+    # store pinners in separate array?
+    # if pinned piece is selected, it can onlly move along the pin direction
+    # check line if enemy piece then king, pin
+    # king has to be on line
+
+
+  # force king to move if in check or block/capture
+    # Implementation?
+  # checkmate if king can't move/block/capture
+    # Implementation?
 
 # edge cases
   # stalemate if king can't move anywhere / draw
-  # pawn promotion / prompt
+  # pawn promotion / promote to queen when reaching opposite side
   # castling, use flags / prompt
     # add rook to possible move list? if flag
     # select / king / select castle
@@ -637,14 +712,17 @@ game.play_game
     # all rows empty
   # en passant
 
-
-# coloring board for selected piece movement
+# put pieces into sub classes?
+# coloring board for selected piece movement or list of possible moves
   # display possible moves as red dots
   # highlight square of selected piece
 # learn how to refresh/clear console and update after every move?
+  # simulate it
 # simple ai / select game mode
   # player vs player
   # player vs computer
+    # randomly select piece
+    # randomly select move
 # serializer
 
 
@@ -652,3 +730,5 @@ game.play_game
 # display class?
 # movement / validate moves
   # edge cases, pawn promotion, en_passant, castling, 
+
+#Private, style guide, clean code

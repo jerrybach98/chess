@@ -259,26 +259,90 @@ describe Player do
   end
 end
 
-#check for chceck after each move
-  # Don't let king move itself into a check 
-    # pass white_moves/black_moves
-    # illegal moves for king
-    # Can't move on protected piece or in path
-    # remove king possible moves referenced to all_possible_attacks?
-  
-  
-  # Don't let piece move if it put's king into check
-    # Implementation?
+    #iterate through board for line pieces
+
+    # return line traversal of all moves / calculate line of attack
+      # make a new method similar to line traversal, return every move in a line until king is located and return true
+      # pass it to line traversal pieces(bishop, rook, queen)
+      # return that line to an instance variable?
+      # compare selected piece moves to the line with instance variable
+
+    # Check if there is only one enemy piece on that line, if so return true
+    # two true's result in a pin
+
+    #find pinned piece, if it falls on instance variable pin line
+    # if pin return location of the pinned piece
+    # match 
+    # if true the pinned piece can only return every move on that line between king
+    # cross reference to piece positions for move generation, remove moves not on line
+     # isolated scenario example
+      # once rook is selected
+      # subtract non line moves from rooks possible move
+    # handling double pin
+
+
+  #check for check after each move
   # force king to move if in check or block/capture
+    # if king shows up on enemy move array
+    # check for legal moves
+    # the next legal move must undo check
   # checkmate if king can't move/block/capture
+    # try all legal moves, if there is no legal move, checkmate
   
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
       [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
       ['   ', '   ', '   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', ' ♕ ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♞ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
+
+
+
+def white_attacks(indexes)
+  white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
+  pawn = [' ♙ ']
+  sub_round = 0
+
+  2.times do
+  sub_round += 1
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if white.include?(element)
+        @white_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
+      elsif pawn.include?(element)
+        @white_moves.concat(@piece.pawn_attacks(index, sub_round))
+      end
+    end
+  end
+
+  moves = @white_moves.uniq
+end
+
+
+def black_attacks(indexes)
+  black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+  pawn = [' ♟︎ ']
+  sub_round = 0
+
+  2.times do
+  sub_round += 1
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if black.include?(element)
+        @black_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
+      elsif pawn.include?(element)
+        @black_moves.concat(@piece.pawn_attacks(index, sub_round))
+      end
+    end
+  end
+
+  moves = @black_moves.uniq
+end
