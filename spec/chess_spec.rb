@@ -199,7 +199,9 @@ describe Piece do
       it 'returns array of correct possible values' do
         king_coordinates = [0, 4]
         round = 1
-        expect(king.king(king_coordinates, round)).to eq([[1, 4], [1, 5], [0, 3], [1, 3]])
+        black_moves = []
+        white_moves = []
+        expect(king.king(king_coordinates, round, black_moves, white_moves)).to eq([[1, 4], [1, 5], [0, 3], [1, 3]])
       end
     end
   end
@@ -259,26 +261,37 @@ describe Player do
   end
 end
 
-    #iterate through board for line pieces
-
-    # return line traversal of all moves / calculate line of attack
-      # make a new method similar to line traversal, return every move in a line until king is located and return true
+    #iterate through board for line pieces/pins in game loop and call each line mover to check piece, 
+    # check_piece method will call individual 
       # pass it to line traversal pieces(bishop, rook, queen)
-      # return that line to an instance variable?
-      # compare selected piece moves to the line with instance variable
 
-    # Check if there is only one enemy piece on that line, if so return true
-    # two true's result in a pin
+    # make a new method similar to line traversal
 
-    #find pinned piece, if it falls on instance variable pin line
-    # if pin return location of the pinned piece
-    # match 
-    # if true the pinned piece can only return every move on that line between king
-    # cross reference to piece positions for move generation, remove moves not on line
-     # isolated scenario example
-      # once rook is selected
-      # subtract non line moves from rooks possible move
+    #if it's a line piece return its location and call line_of_attack on each base move
+      # return line traversal of all moves / calculate line of attack
+
+    # each indvidual line will have a function call to check for pins (matching both king and 1 enemy piece)
+      # make a new method similar to line traversal, return every move in a line until king is located and return true
+      # Check if there is only one enemy piece on that line, if so return true
+      # two true's result in a pin
+
+    # return that line to an instance variable?
+    # compare selected piece moves to the line with instance variable
+
+    # find pinned piece, if it falls on instance variable pin line
+      # if pin return location of the pinned piece
+      # if true the pinned piece can only return every move on that line
+      # cross reference to piece positions for move generation, remove moves not on line
+
+    # check for pins after every loop
+
     # handling double pin
+
+
+
+
+
+
 
 
   #check for check after each move

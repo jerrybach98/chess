@@ -40,6 +40,7 @@ class Game
     loop do
       reset_game_state()
       all_possible_attacks()
+      @piece.all_possible_pins()
       prompt_move()
       @board.display_board
       @round += 1
@@ -544,6 +545,7 @@ class Piece
   end
 
   # iterates through board returning line of attack
+  # need to break once king is reached
   def line_of_attack(move, coordinates, round)
     moves = []
     row = coordinates[0] 
@@ -564,11 +566,17 @@ class Piece
     moves
   end
 
-  # true if that line has a king 
-  # true if that line has only 1 enemy piece
-  # two true's result in a pin
+  # if array has a king and if that line has only 1 enemy piece
+    # iterator everytime enemy piece is found?
   # if round is odd black_pins, if round is even white_pins
-  def pin?(moves, round)
+  def pin(moves, round)
+
+    moves.each do |move|
+      if enemy_piece?(move, round) == true
+      end
+    end
+
+
 
   end
 
@@ -577,35 +585,63 @@ class Piece
     # use a flag if king or rook has moved from their original position?
   end
 
-  #def white_pinners(indexes)
-   # pinners = [' ♗ ', ' ♖ ', ' ♕ ']
-   # pinners_positions = []
+  def white_pinners(indexes)
+    pinners = [' ♗ ', ' ♖ ', ' ♕ ']
+    pinners_positions = []
 
-  #  indexes.each do |index|
-  #    row = index[0]
-  #    col = index[1]
-  #    piece = @chessboard[row][col]
-  #    if pinners.include?(piece)
-  #      pinners_positions << [row, col]
-  #    end
-  #  end
-  #  pinners_positions
-  #end
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      piece = @chessboard[row][col]
+      if pinners.include?(piece)
+        pinners_positions << [row, col]
+      end
+    end
+    pinners_positions
+  end
 
-  #def black_pins(indexes)
+  def black_pinners(indexes)
+    pinners = [' ♝ ', ' ♜ ', ' ♛ ']
+    pinners_positions = []
 
-  #end
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      piece = @chessboard[row][col]
+      if pinners.include?(piece)
+        pinners_positions << [row, col]
+      end
+    end
+    pinners_positions
+  end
 
-  #def all_possible_pins(indexes)
-  #  indexes = @board.board_indexes
-  #  white_pinners = white_pinners(indexes)
-  #  line_of_attack(white_pinners)
+  def all_possible_pins()
+    indexes = @board.board_indexes
+    #white_pinners = white_pinners(indexes)
+    #black_pinners = black_pinners(indexes)
+    #line_of_attack(white_pinners)
 
-    #white = algebraic_possible_moves(white_pins(indexes))
-    #black = algebraic_possible_moves(black_pins(indexes))
-    #puts "White moves #{white}"
-    #puts "Black Moves #{black}"
-  #end
+    white = algebraic_pins(white_pinners(indexes))
+    black = algebraic_pins(black_pinners(indexes))
+    puts "White pinners: #{white}"
+    puts "Black pinners: #{black}"
+  end
+
+  # Show notation For faster puts testing
+  def algebraic_pins(moves)
+    if moves == nil 
+      return 
+    else
+      new_moves = moves.map do |move|
+        array = move.reverse
+        row = (array[0] + 97).chr
+        col = (array[1] + 1).to_s
+        notation = [row, col] * ""
+      end
+    end
+    new_moves
+  end
+
 
 end
 
