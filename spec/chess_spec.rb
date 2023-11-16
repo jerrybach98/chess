@@ -261,10 +261,10 @@ describe Player do
   end
 end
 
-    #iterate through board for line pieces/pins in game loop and call each line mover to check piece, 
+    #iterate through board for pins in game loop and call check_piece on each piece
     # check_piece method will call individual 
-      # pass it to line traversal pieces(bishop, rook, queen)
 
+    # pass it to line traversal pieces(bishop, rook, queen)
     # make a new method similar to line traversal
 
     #if it's a line piece return its location and call line_of_attack on each base move
@@ -276,6 +276,7 @@ end
       # two true's result in a pin
 
     # return that line to an instance variable?
+    # add pinner position to it
     # compare selected piece moves to the line with instance variable
 
     # find pinned piece, if it falls on instance variable pin line
@@ -313,49 +314,13 @@ end
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
 
-
-
-def white_attacks(indexes)
-  white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
-  pawn = [' ♙ ']
-  sub_round = 0
-
-  2.times do
-  sub_round += 1
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      element = @chessboard[row][col]
-      if white.include?(element)
-        @white_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
-      elsif pawn.include?(element)
-        @white_moves.concat(@piece.pawn_attacks(index, sub_round))
-      end
-    end
-  end
-
-  moves = @white_moves.uniq
-end
-
-
-def black_attacks(indexes)
-  black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-  pawn = [' ♟︎ ']
-  sub_round = 0
-
-  2.times do
-  sub_round += 1
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      element = @chessboard[row][col]
-      if black.include?(element)
-        @black_moves.concat(@piece.check_piece(index, sub_round, @black_moves, @white_moves))
-      elsif pawn.include?(element)
-        @black_moves.concat(@piece.pawn_attacks(index, sub_round))
-      end
-    end
-  end
-
-  moves = @black_moves.uniq
-end
+    @chessboard = [
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+    ]

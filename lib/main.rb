@@ -1,5 +1,5 @@
 class Game
-  attr_accessor :chessboard, :round
+  attr_accessor :round
   def initialize(board, player, piece)
     @board = board
     @chessboard = board.chessboard
@@ -40,7 +40,8 @@ class Game
     loop do
       reset_game_state()
       all_possible_attacks()
-      @piece.all_possible_pins()
+      #@piece.all_possible_pins(@round, @black_moves, @white_moves)
+      puts "Black Pin line: #{@piece.black_pins.uniq}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -179,7 +180,7 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
@@ -291,8 +292,9 @@ class Board
 
 end
 
+# put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :round
+  attr_accessor :black_pins
 
   def initialize(board)
     @board = board
@@ -477,6 +479,7 @@ class Piece
     
     base_moves.each do |move|
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
+      check_black_pins(move, rook_coordinates, round)
     end
     rook_moves
   end
@@ -569,15 +572,50 @@ class Piece
   # if array has a king and if that line has only 1 enemy piece
     # iterator everytime enemy piece is found?
   # if round is odd black_pins, if round is even white_pins
-  def pin(moves, round)
+  def pin(moves, coordinates, round)
+    if moves.empty? == false
+      puts "Lines of attack: #{algebraic_pins(moves)}"
+      p moves
+      p ""
+    end
 
-    moves.each do |move|
-      if enemy_piece?(move, round) == true
+    enemy = 0
+    king = false
+
+    moves.each do |index|
+      row = index[0]
+      col = index[1]
+      #p @chessboard[row][col]
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+      if enemy_piece?(index, round)
+        enemy += 1
+      elsif friendly_piece?(index, round)
+        break
+      end
+
+      if @chessboard[row][col] == ' ♔ '
+        p "king found"
+        king = true
+        break
       end
     end
 
+    if moves.empty? == false
+    #  puts "Is king: #{king}"
+    #  p enemy
+    end
 
+    if king == true && enemy == 2
+      moves << coordinates
+      @black_pins << moves
+    end
 
+  @black_pins
+  end
+
+  def check_black_pins(move, coordinates, round)
+    moves = line_of_attack(move, coordinates, 2)
+    pin(moves, coordinates, 2)
   end
 
   def castling
@@ -585,47 +623,51 @@ class Piece
     # use a flag if king or rook has moved from their original position?
   end
 
-  def white_pinners(indexes)
-    pinners = [' ♗ ', ' ♖ ', ' ♕ ']
-    pinners_positions = []
+#  def white_pinners(indexes)
+#    pinners = [' ♗ ', ' ♖ ', ' ♕ ']
+#    pinners_positions = []
+#
+#    indexes.each do |index|
+#      row = index[0]
+#      col = index[1]
+#      piece = @chessboard[row][col]
+#      if pinners.include?(piece)
+#        pinners_positions << [row, col]
+#      end
+#    end
+#    pinners_positions
+#  end
 
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      piece = @chessboard[row][col]
-      if pinners.include?(piece)
-        pinners_positions << [row, col]
-      end
-    end
-    pinners_positions
-  end
+#  def black_pinners(indexes)
+#    pinners = [' ♝ ', ' ♜ ', ' ♛ ']
+#    pinners_positions = []
+#
+#    indexes.each do |index|
+#      row = index[0]
+#      col = index[1]
+#      piece = @chessboard[row][col]
+#      if pinners.include?(piece)
+#        pinners_positions << [row, col]
+#      end
+#    end
+#    pinners_positions
+#  end
 
-  def black_pinners(indexes)
-    pinners = [' ♝ ', ' ♜ ', ' ♛ ']
-    pinners_positions = []
-
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      piece = @chessboard[row][col]
-      if pinners.include?(piece)
-        pinners_positions << [row, col]
-      end
-    end
-    pinners_positions
-  end
-
-  def all_possible_pins()
-    indexes = @board.board_indexes
+  #def all_possible_pins(round, black_moves, white_moves)
+  #  indexes = @board.board_indexes
     #white_pinners = white_pinners(indexes)
-    #black_pinners = black_pinners(indexes)
+  #  black_pinners = black_pinners(indexes)
+  #  black_pinners.each do |pinner|
+  #    check_piece(pinner, round, black_moves, white_moves)
+  #  end
+
     #line_of_attack(white_pinners)
 
-    white = algebraic_pins(white_pinners(indexes))
-    black = algebraic_pins(black_pinners(indexes))
-    puts "White pinners: #{white}"
-    puts "Black pinners: #{black}"
-  end
+    #white = algebraic_pins(white_pinners(indexes))
+  #  black = algebraic_pins(black_pinners(indexes))
+    #puts "White pinners: #{white}"
+  #  puts "Black pinners: #{black}"
+  #end
 
   # Show notation For faster puts testing
   def algebraic_pins(moves)
