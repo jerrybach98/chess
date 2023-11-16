@@ -42,6 +42,7 @@ class Game
       all_possible_attacks()
       #@piece.all_possible_pins(@round, @black_moves, @white_moves)
       puts "Black Pin line: #{@piece.black_pins.uniq}"
+      puts "White Pin line: #{@piece.white_pins.uniq}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -178,11 +179,11 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
   
     @display = []
@@ -294,7 +295,7 @@ end
 
 # put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :black_pins
+  attr_accessor :black_pins, :white_pins
 
   def initialize(board)
     @board = board
@@ -469,6 +470,7 @@ class Piece
     
     base_moves.each do |move|
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
+      pins(move, rook_coordinates, round)
     end
     bishop_moves
   end
@@ -479,7 +481,7 @@ class Piece
     
     base_moves.each do |move|
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
-      check_black_pins(move, rook_coordinates, round)
+      pins(move, rook_coordinates, round)
     end
     rook_moves
   end
@@ -490,9 +492,7 @@ class Piece
     
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
-      # add pin check 
-      # add line traversal to an instance variable
-      # add coordinates to that array
+      pins(move, rook_coordinates, round)
     end
     queen_moves
   end
@@ -547,8 +547,16 @@ class Piece
     end
   end
 
-  # iterates through board returning line of attack
-  # need to break once king is reached
+
+  # Called in line traversal pieces to check for pins
+  def pins(move, coordinates, round)
+    black_moves = line_of_attack(move, coordinates, 2)
+    check_pins(black_moves, coordinates, 2, ' ♔ ', @black_pins)
+    white_moves = line_of_attack(move, coordinates, 1)
+    check_pins(white_moves, coordinates, 1, ' ♚ ', @white_pins)
+  end
+
+  # Returns line of attack for line movement pieces to calculate pins
   def line_of_attack(move, coordinates, round)
     moves = []
     row = coordinates[0] 
@@ -565,58 +573,51 @@ class Piece
         break
       end
     end
-    # if moves contains king return moves && only has two pieces
     moves
   end
 
-  # if array has a king and if that line has only 1 enemy piece
-    # iterator everytime enemy piece is found?
-  # if round is odd black_pins, if round is even white_pins
-  def pin(moves, coordinates, round)
-    if moves.empty? == false
-      puts "Lines of attack: #{algebraic_pins(moves)}"
-      p moves
-      p ""
-    end
+  # check if line of attack has two enemy pieces including a king
+  def check_pins(moves, coordinates, round, king_color, pins)
+    king = find_pinned_king(moves, king_color)
+    enemy = pin_line_pieces(moves, round)
 
+    if king == true && enemy == 2
+      moves << coordinates
+      pins << moves
+    end
+  end
+
+  # Need two enemy pieces to consider a pin 
+  def pin_line_pieces(moves, round)
     enemy = 0
-    king = false
 
     moves.each do |index|
-      row = index[0]
-      col = index[1]
-      #p @chessboard[row][col]
-      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
       if enemy_piece?(index, round)
         enemy += 1
       elsif friendly_piece?(index, round)
         break
       end
+    end
 
-      if @chessboard[row][col] == ' ♔ '
-        p "king found"
+    enemy
+  end
+
+  # checks if line of attack contains a king
+  def find_pinned_king(moves, king_color)
+    king = false
+
+    moves.each do |index|
+      row = index[0]
+      col = index[1]
+      if @chessboard[row][col] == king_color
         king = true
         break
       end
     end
-
-    if moves.empty? == false
-    #  puts "Is king: #{king}"
-    #  p enemy
-    end
-
-    if king == true && enemy == 2
-      moves << coordinates
-      @black_pins << moves
-    end
-
-  @black_pins
+  
+    king
   end
 
-  def check_black_pins(move, coordinates, round)
-    moves = line_of_attack(move, coordinates, 2)
-    pin(moves, coordinates, 2)
-  end
 
   def castling
     #squares between king and rook are vacant

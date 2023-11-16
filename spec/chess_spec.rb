@@ -261,30 +261,25 @@ describe Player do
   end
 end
 
-    #iterate through board for pins in game loop and call check_piece on each piece
-    # check_piece method will call individual 
-
-    # pass it to line traversal pieces(bishop, rook, queen)
+    #iterate through board for pins and all attack positions
     # make a new method similar to line traversal
-
-    #if it's a line piece return its location and call line_of_attack on each base move
-      # return line traversal of all moves / calculate line of attack
-
-    # each indvidual line will have a function call to check for pins (matching both king and 1 enemy piece)
-      # make a new method similar to line traversal, return every move in a line until king is located and return true
-      # Check if there is only one enemy piece on that line, if so return true
+    # pass it to line traversal pieces(bishop, rook, queen)
+      #if it's a line piece return its location and call line_of_attack on each base move
+    # each indvidual line will check for pins (matching both king and 1 enemy piece) or until king is located?
       # two true's result in a pin
+    # return that line to an instance variable
+      # add pinner position to it
 
-    # return that line to an instance variable?
-    # add pinner position to it
-    # compare selected piece moves to the line with instance variable
+
+    
 
     # find pinned piece, if it falls on instance variable pin line
       # if pin return location of the pinned piece
       # if true the pinned piece can only return every move on that line
       # cross reference to piece positions for move generation, remove moves not on line
+      # compare selected piece moves to the line with instance variable
 
-    # check for pins after every loop
+    # check for pins after every loop / do the same for both colors
 
     # handling double pin
 
