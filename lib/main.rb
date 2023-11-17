@@ -179,7 +179,7 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
+      [' ♔ ', ' ♙ ', ' ♜ ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
@@ -521,6 +521,7 @@ class Piece
     moves
   end
 
+
   def king(king_coordinates, round, black_moves, white_moves)
     row = king_coordinates[0] 
     col = king_coordinates[1]
@@ -550,14 +551,15 @@ class Piece
 
   # Called in line traversal pieces to check for pins
   def pins(move, coordinates, round)
-    black_moves = line_of_attack(move, coordinates, 2)
+    black_moves = line_of_attack(move, coordinates, 2, ' ♔ ')
     check_pins(black_moves, coordinates, 2, ' ♔ ', @black_pins)
-    white_moves = line_of_attack(move, coordinates, 1)
-    check_pins(white_moves, coordinates, 1, ' ♚ ', @white_pins)
+    white_moves = line_of_attack(move, coordinates, 1, ' ♚ ')
+    check_pins(white_moves, coordinates, 1, ' ♚ ', @white_pins,)
   end
 
   # Returns line of attack for line movement pieces to calculate pins
-  def line_of_attack(move, coordinates, round)
+  # stops pin line traversal once king is reached
+  def line_of_attack(move, coordinates, round, king)
     moves = []
     row = coordinates[0] 
     col = coordinates[1]
@@ -569,6 +571,7 @@ class Piece
         moves << new_move
       elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round)
         moves << new_move
+        break if @chessboard[row][col] == king
       else
         break
       end
@@ -578,16 +581,21 @@ class Piece
 
   # check if line of attack has two enemy pieces including a king
   def check_pins(moves, coordinates, round, king_color, pins)
+    if moves.empty? == false
+      p algebraic_pins(moves)
+    end
+
     king = find_pinned_king(moves, king_color)
     enemy = pin_line_pieces(moves, round)
 
     if king == true && enemy == 2
+
       moves << coordinates
       pins << moves
     end
   end
 
-  # Need two enemy pieces to consider a pin 
+  # Need two enemy pieces to meet pin criteria
   def pin_line_pieces(moves, round)
     enemy = 0
 
@@ -602,13 +610,14 @@ class Piece
     enemy
   end
 
-  # checks if line of attack contains a king
+  # checks if pin line of attack contains a king
   def find_pinned_king(moves, king_color)
     king = false
 
     moves.each do |index|
       row = index[0]
       col = index[1]
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
       if @chessboard[row][col] == king_color
         king = true
         break

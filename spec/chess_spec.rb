@@ -281,7 +281,7 @@ end
 
     # check for pins after every loop / do the same for both colors
 
-    # handling double pin
+    # handling double pin / pins from multiple directions?
 
 
 
@@ -313,9 +313,54 @@ end
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
+
+
+
+
+    def pin(moves, coordinates, round)
+      if moves.empty? == false
+        puts "Lines of attack: #{algebraic_pins(moves)}"
+        p moves
+        p ""
+      end
+  
+      enemy = 0
+      king = false
+  
+      moves.each do |index|
+        row = index[0]
+        col = index[1]
+        #p @chessboard[row][col]
+        #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+        if enemy_piece?(index, round)
+          enemy += 1
+        elsif friendly_piece?(index, round)
+          break
+        end
+  
+        if @chessboard[row][col] == ' ♔ '
+          p "king found"
+          king = true
+          break
+        end
+      end
+  
+      if moves.empty? == false
+      #  puts "Is king: #{king}"
+      #  p enemy
+      end
+  
+      if king == true && enemy == 2
+        moves << coordinates
+        @black_pins << moves
+      end
+  
+    @black_pins
+    end
+  
