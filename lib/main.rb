@@ -33,22 +33,23 @@ class Game
     @player.select_mode
     @board.display_board
     game_loop()
-
+    #return color win announcement
   end
+
 
   def game_loop
     loop do
       reset_game_state()
       all_possible_attacks()
-      #@piece.all_possible_pins(@round, @black_moves, @white_moves)
-      puts "Black Pin line: #{@piece.black_pins.uniq}"
+      puts "Black Pin line: #{@piece.black_pins}"
+      p @piece.black_pins
       puts "White Pin line: #{@piece.white_pins.uniq}"
       prompt_move()
       @board.display_board
       @round += 1
       reset_game_state()
       all_possible_attacks()
-      #return if win condition
+      #check win condition
     end
   end
 
@@ -179,11 +180,11 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', ' ♙ ', ' ♜ ', '   ', '   ', '   ', '   ', ' ♖ '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
+      [' ♛ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -300,8 +301,8 @@ class Piece
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
-    @white_pins = []
-    @black_pins = []
+    @white_pins = {}
+    @black_pins = {}
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -470,7 +471,7 @@ class Piece
     
     base_moves.each do |move|
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
-      pins(move, rook_coordinates, round)
+      pins(move, bishop_coordinates, round)
     end
     bishop_moves
   end
@@ -492,7 +493,7 @@ class Piece
     
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
-      pins(move, rook_coordinates, round)
+      pins(move, queen_coordinates, round)
     end
     queen_moves
   end
@@ -580,6 +581,7 @@ class Piece
   end
 
   # check if line of attack has two enemy pieces including a king
+  # return position of first pinned piece
   def check_pins(moves, coordinates, round, king_color, pins)
     if moves.empty? == false
       p algebraic_pins(moves)
@@ -589,9 +591,9 @@ class Piece
     enemy = pin_line_pieces(moves, round)
 
     if king == true && enemy == 2
-
+      pinned = find_pinned_piece(moves, round, king)
       moves << coordinates
-      pins << moves
+      pins[pinned] = moves
     end
   end
 
@@ -608,6 +610,20 @@ class Piece
     end
 
     enemy
+  end
+
+  def find_pinned_piece(moves, round, king)
+    piece = nil
+
+    moves.each do |move|
+      row = move[0]
+      col = move[1]
+      if enemy_piece?(move, round) && @chessboard[row][col] != king
+        piece = move
+        break
+      end
+    end
+    piece
   end
 
   # checks if pin line of attack contains a king
