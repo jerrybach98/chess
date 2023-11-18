@@ -42,8 +42,7 @@ class Game
       reset_game_state()
       all_possible_attacks()
       puts "Black Pin line: #{@piece.black_pins}"
-      p @piece.black_pins
-      puts "White Pin line: #{@piece.white_pins.uniq}"
+      puts "White Pin line: #{@piece.white_pins}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -78,6 +77,7 @@ class Game
       chess_notation = @player.select_position
       p array_position = @board.select_piece(chess_notation)
       p @possible_moves = @piece.check_piece(array_position, @round, @black_moves, @white_moves) # check what piece is being selected and return possible moves
+      pinned_moves(array_position) #adjust the possible moves instance variable
       p @notation_moves = algebraic_possible_moves(@possible_moves)
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
@@ -165,10 +165,21 @@ class Game
     puts "Black Moves #{black}"
   end
 
+  def pinned_moves(piece_selection)
+    if @piece.black_pins[piece_selection] != nil && round.odd?
+      @possible_moves = @possible_moves & @piece.black_pins[piece_selection]
+    elsif
+      @piece.white_pins[piece_selection] != nil && round.even?
+      @possible_moves = @possible_moves & @piece.white_pins[piece_selection]
+    end
+  end
+
   def reset_game_state
     @possible_moves = []
     @white_moves = []
     @black_moves = []
+    @piece.white_pins = {}
+    @piece.black_pins = {}
   end
 end
 
@@ -180,11 +191,11 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♛ ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
+      ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
   
     @display = []
@@ -581,7 +592,7 @@ class Piece
   end
 
   # check if line of attack has two enemy pieces including a king
-  # return position of first pinned piece
+  # return position of first pinned piece as key and pin line as values into hash
   def check_pins(moves, coordinates, round, king_color, pins)
     if moves.empty? == false
       p algebraic_pins(moves)

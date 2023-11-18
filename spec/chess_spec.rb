@@ -275,22 +275,16 @@ end
 
     # find pinned piece, if it falls on instance variable pin line
       # if pin return location of the pinned piece
-      # if true the pinned piece can only return every move on that line
+      # once selected pinned piece can only return every move on that line
       # cross reference to piece positions for move generation, remove moves not on line
       # compare selected piece moves to the line with instance variable
 
     # check for pins after every loop / do the same for both colors
 
     # handling double pin / pins from multiple directions?
-
-
-
-
-
-
-
-
-  #check for check after each move
+  
+  
+    #check for check after each move
   # force king to move if in check or block/capture
     # if king shows up on enemy move array
     # check for legal moves
