@@ -260,28 +260,6 @@ describe Player do
     end
   end
 end
-
-    #iterate through board for pins and all attack positions
-    # make a new method similar to line traversal
-    # pass it to line traversal pieces(bishop, rook, queen)
-      #if it's a line piece return its location and call line_of_attack on each base move
-    # each indvidual line will check for pins (matching both king and 1 enemy piece) or until king is located?
-      # two true's result in a pin
-    # return that line to an instance variable
-      # add pinner position to it
-
-
-    
-
-    # find pinned piece, if it falls on instance variable pin line
-      # if pin return location of the pinned piece
-      # once selected pinned piece can only return every move on that line
-      # cross reference to piece positions for move generation, remove moves not on line
-      # compare selected piece moves to the line with instance variable
-
-    # check for pins after every loop / do the same for both colors
-
-    # handling double pin / pins from multiple directions?
   
   
     #check for check after each move
@@ -313,48 +291,3 @@ end
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
-
-
-
-
-    def pin(moves, coordinates, round)
-      if moves.empty? == false
-        puts "Lines of attack: #{algebraic_pins(moves)}"
-        p moves
-        p ""
-      end
-  
-      enemy = 0
-      king = false
-  
-      moves.each do |index|
-        row = index[0]
-        col = index[1]
-        #p @chessboard[row][col]
-        #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
-        if enemy_piece?(index, round)
-          enemy += 1
-        elsif friendly_piece?(index, round)
-          break
-        end
-  
-        if @chessboard[row][col] == ' ♔ '
-          p "king found"
-          king = true
-          break
-        end
-      end
-  
-      if moves.empty? == false
-      #  puts "Is king: #{king}"
-      #  p enemy
-      end
-  
-      if king == true && enemy == 2
-        moves << coordinates
-        @black_pins << moves
-      end
-  
-    @black_pins
-    end
-  

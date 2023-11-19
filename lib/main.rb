@@ -82,6 +82,8 @@ class Game
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
+      rescue NoMethodError
+      puts "\nInvalid selection, enter a valid piece with algebraic notation"
     end
   end
 
@@ -94,6 +96,8 @@ class Game
         return array_move
        end
       puts "\nInvalid, enter a move with algebraic notation"
+      rescue NoMethodError
+        puts "\nInvalid, enter a move with algebraic notation"
     end
   end
 
@@ -811,11 +815,13 @@ game.play_game
     # check line if enemy piece then king, pin
     # king has to be on line
 
-
   # force king to move if in check or block/capture
     # Implementation?
   # checkmate if king can't move/block/capture
     # Implementation?
+
+
+
 
 # edge cases
   # stalemate if king can't move anywhere / draw
@@ -828,11 +834,9 @@ game.play_game
   # en passant
 
 # put pieces into sub classes?
-# coloring board for selected piece movement or list of possible moves
-  # display possible moves as red dots
-  # highlight square of selected piece
+# list of possible moves
 # learn how to refresh/clear console and update after every move?
-  # simulate it
+  # or simulate it
 # simple ai / select game mode
   # player vs player
   # player vs computer
