@@ -262,13 +262,22 @@ describe Player do
 end
   
   
-    #check for check after each move
-  # force king to move if in check or block/capture
-    # if king shows up on enemy move array
-    # check for legal moves
-    # the next legal move must undo check
+  #check for check after each move
+  # create check line, including piece itself
+
+
+
+  #influence actual move generation: if king is in range of move' or check if check line is not empty
+  # avoid check: friendly piece move generation has to be on check line or capture enemy check position (similar to pin logic) for line movements (queen, bishop, rook)
+
+  # king has to move/capture or friendly pieces have to capture for non line enemy (pawn, knight)
+    # King has to move off of line or capture enemy (doesn't need to adjust king moves in this case)
+    # cross reference all available friend moves to check line?
+
   # checkmate if king can't move/block/capture
-    # try all legal moves, if there is no legal move, checkmate
+    # and no friendly piece possible move can move on check line/enemy
+
+  # double check?
   
     @chessboard = [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -291,3 +300,9 @@ end
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
+
+
+
+[' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
+
+[' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']

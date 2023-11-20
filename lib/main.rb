@@ -43,6 +43,8 @@ class Game
       all_possible_attacks()
       puts "Black Pin line: #{@piece.black_pins}"
       puts "White Pin line: #{@piece.white_pins}"
+      puts "Black Check line: #{@piece.black_checks.uniq}"
+      puts "White Check line: #{@piece.white_checks.uniq}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -75,8 +77,8 @@ class Game
   def prompt_valid_selection
     loop do 
       chess_notation = @player.select_position
-      p array_position = @board.select_piece(chess_notation)
-      p @possible_moves = @piece.check_piece(array_position, @round, @black_moves, @white_moves) # check what piece is being selected and return possible moves
+      array_position = @board.select_piece(chess_notation)
+      @possible_moves = @piece.check_piece(array_position, @round, @black_moves, @white_moves) # check what piece is being selected and return possible moves
       pinned_moves(array_position) #adjust the possible moves instance variable
       p @notation_moves = algebraic_possible_moves(@possible_moves)
       # if possible moves.empty? when selecting, deselect the piece
@@ -184,6 +186,7 @@ class Game
     @black_moves = []
     @piece.white_pins = {}
     @piece.black_pins = {}
+    # checks
   end
 end
 
@@ -192,10 +195,10 @@ class Board
 
   def initialize
     @chessboard = [
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♙ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', ' ♝ ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', ' ♙ ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
       [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
       ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
@@ -311,13 +314,16 @@ end
 
 # put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :black_pins, :white_pins
+  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks
 
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
     @white_pins = {}
     @black_pins = {}
+    # Depending on how I handle array it might not work for double checks
+    @white_checks = []
+    @black_checks = []
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -487,6 +493,7 @@ class Piece
     base_moves.each do |move|
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
       pins(move, bishop_coordinates, round)
+      check(move, bishop_coordinates, round)
     end
     bishop_moves
   end
@@ -498,6 +505,7 @@ class Piece
     base_moves.each do |move|
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
       pins(move, rook_coordinates, round)
+      check(move, rook_coordinates, round)
     end
     rook_moves
   end
@@ -509,6 +517,7 @@ class Piece
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
       pins(move, queen_coordinates, round)
+      check(move, queen_coordinates, round)
     end
     queen_moves
   end
@@ -564,13 +573,64 @@ class Piece
     end
   end
 
+  # friendly white rook is targeting friendly white king?
+  # need to fix pin line too, friendly white pieces on pinning white king
+  # white and black moves are working cuz they have seperate color functions
+
+  def check(move, coordinates, round)
+    black_possible_check = check_attack_line(move, coordinates, 2, ' ♔ ')
+    add_checks(black_possible_check, coordinates, 2, ' ♔ ', @black_checks)
+    #white_possible_check = check_attack_line(move, coordinates, 1, ' ♚ ')
+    #add_checks(white_possible_check, 1, ' ♚ ', @white_checks)
+  end
+
+  def add_checks(moves, coordinates, round, king_color, checks)
+    king = find_king(moves, king_color)
+    enemy = pin_line_pieces(moves, round)
+
+    if king == true && enemy == 1
+      checks << moves
+    end
+  end
+
+  # line is empty all the way to enemy king piece
+  def check_attack_line(move, coordinates, round, king)
+    moves = []
+    row = coordinates[0] 
+    col = coordinates[1]
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
+        moves << new_move
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
+        moves << new_move
+        break
+      else
+        break
+      end
+    end
+    moves
+  end
+
 
   # Called in line traversal pieces to check for pins
+  # check what color the coordinates are?
   def pins(move, coordinates, round)
-    black_moves = line_of_attack(move, coordinates, 2, ' ♔ ')
-    check_pins(black_moves, coordinates, 2, ' ♔ ', @black_pins)
-    white_moves = line_of_attack(move, coordinates, 1, ' ♚ ')
-    check_pins(white_moves, coordinates, 1, ' ♚ ', @white_pins,)
+    white_pinners = [' ♗ ', ' ♖ ', ' ♕ ']
+    black_pinners = [' ♝ ', ' ♜ ', ' ♛ ']
+    piece = @chessboard[coordinates[0]][coordinates[1]]
+
+
+    if black_pinners.include?(piece)
+      black_moves = line_of_attack(move, coordinates, 2, ' ♔ ')
+      check_pins(black_moves, coordinates, 2, ' ♔ ', @black_pins)
+    elsif white_pinners.include?(piece)
+      white_moves = line_of_attack(move, coordinates, 1, ' ♚ ')
+      check_pins(white_moves, coordinates, 1, ' ♚ ', @white_pins)
+    end
   end
 
   # Returns line of attack for line movement pieces to calculate pins
@@ -599,10 +659,10 @@ class Piece
   # return position of first pinned piece as key and pin line as values into hash
   def check_pins(moves, coordinates, round, king_color, pins)
     if moves.empty? == false
-      p algebraic_pins(moves)
+      algebraic_pins(moves)
     end
 
-    king = find_pinned_king(moves, king_color)
+    king = find_king(moves, king_color)
     enemy = pin_line_pieces(moves, round)
 
     if king == true && enemy == 2
@@ -642,7 +702,7 @@ class Piece
   end
 
   # checks if pin line of attack contains a king
-  def find_pinned_king(moves, king_color)
+  def find_king(moves, king_color)
     king = false
 
     moves.each do |index|
@@ -804,27 +864,9 @@ game.play_game
 
 # PIECES
 # win conditions
-  #check for check after each move
-  # implement flag for check? if king is in range of move'
-    # Can't move friendly piece if king is being pinned / put into check
-    # aboslute pin == false
-    # Enemy line movement if friendly piece then king
-    # can the piece can still move along line of pin 
-    # store pinners in separate array?
-    # if pinned piece is selected, it can onlly move along the pin direction
-    # check line if enemy piece then king, pin
-    # king has to be on line
-
-  # force king to move if in check or block/capture
-    # Implementation?
-  # checkmate if king can't move/block/capture
-    # Implementation?
-
-
-
 
 # edge cases
-  # stalemate if king can't move anywhere / draw
+  # stalemate if king has no available moves draw / possible move array empty
   # pawn promotion / promote to queen when reaching opposite side
   # castling, use flags / prompt
     # add rook to possible move list? if flag

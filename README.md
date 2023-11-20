@@ -12,6 +12,7 @@ Chess is a command-line interface (CLI) game that allows two players to compete 
 
 ### Lessons Learned:
 * Learn how ANSI escape codes interacts with terminal for color
+* ASCII for numbers
 * Create advanced command line game
 * Breaking code down into parts / structured approach to writing
 * Applying cumulative experience from past projects Eg. caesar cipher
@@ -31,3 +32,4 @@ simplify logic to less methods
 more advanced AI, recursion, breadth first search for min max
 flipping board
 Reducing redundant code for black and white pieces
+Further modularize code
