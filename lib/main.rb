@@ -195,12 +195,12 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♙ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', ' ♝ ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', ' ♙ ', '   ', '   ', ' ♖ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
@@ -578,10 +578,17 @@ class Piece
   # white and black moves are working cuz they have seperate color functions
 
   def check(move, coordinates, round)
-    black_possible_check = check_attack_line(move, coordinates, 2, ' ♔ ')
-    add_checks(black_possible_check, coordinates, 2, ' ♔ ', @black_checks)
-    #white_possible_check = check_attack_line(move, coordinates, 1, ' ♚ ')
-    #add_checks(white_possible_check, 1, ' ♚ ', @white_checks)
+    white_pieces = [' ♗ ', ' ♖ ', ' ♕ ']
+    black_pieces = [' ♝ ', ' ♜ ', ' ♛ ']
+    piece = @chessboard[coordinates[0]][coordinates[1]]
+
+    if black_pieces.include?(piece)
+      black_possible_check = check_attack_line(move, coordinates, 2, ' ♔ ')
+      add_checks(black_possible_check, coordinates, 2, ' ♔ ', @black_checks)
+    elsif white_pieces.include?(piece)
+      white_possible_check = check_attack_line(move, coordinates, 1, ' ♚ ')
+      add_checks(white_possible_check, coordinates, 1, ' ♚ ', @white_checks)
+    end
   end
 
   def add_checks(moves, coordinates, round, king_color, checks)
@@ -589,6 +596,7 @@ class Piece
     enemy = pin_line_pieces(moves, round)
 
     if king == true && enemy == 1
+      moves << coordinates
       checks << moves
     end
   end
