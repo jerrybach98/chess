@@ -45,6 +45,8 @@ class Game
       puts "White Pin line: #{@piece.white_pins}"
       puts "Black Check line: #{@piece.black_checks.uniq}"
       puts "White Check line: #{@piece.white_checks.uniq}"
+      puts "King Black Check line: #{@piece.king_black_checks}"
+      puts "King White Check line: #{@piece.king_white_checks}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -314,7 +316,7 @@ end
 
 # put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks
+  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks
 
   def initialize(board)
     @board = board
@@ -324,6 +326,9 @@ class Piece
     # Depending on how I handle array it might not work for double checks
     @white_checks = []
     @black_checks = []
+
+    @king_white_checks = {}
+    @king_black_checks = {}
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -585,9 +590,16 @@ class Piece
     if black_pieces.include?(piece)
       black_possible_check = check_attack_line(move, coordinates, 2, ' ♔ ')
       add_checks(black_possible_check, coordinates, 2, ' ♔ ', @black_checks)
+      possible_black_king = king_attack_line(move, coordinates, 2, ' ♔ ')
+      add_king_checks(possible_black_king, coordinates, 2, ' ♔ ', @king_black_checks)
+
     elsif white_pieces.include?(piece)
       white_possible_check = check_attack_line(move, coordinates, 1, ' ♚ ')
       add_checks(white_possible_check, coordinates, 1, ' ♚ ', @white_checks)
+
+      possible_white_king = king_attack_line(move, coordinates, 1, ' ♚ ')
+      add_king_checks(possible_white_king, coordinates, 1, ' ♚ ', @king_white_checks)
+
     end
   end
 
@@ -601,7 +613,18 @@ class Piece
     end
   end
 
-  # line is empty all the way to enemy king piece
+  # as a hash? king can move on hash key but not values
+  def add_king_checks(moves, coordinates, round, king_color, checks)
+    king = find_king(moves, king_color)
+    #enemy = pin_line_pieces(moves, round)
+
+    if king == true
+      checks[coordinates] = moves
+    end
+  end
+
+
+  # For friendly pieces to block or capture checks
   def check_attack_line(move, coordinates, round, king)
     moves = []
     row = coordinates[0] 
@@ -616,6 +639,27 @@ class Piece
       elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
         moves << new_move
         break
+      else
+        break
+      end
+    end
+    moves
+  end
+
+  # For king to move out of way or capture check piece 
+  def king_attack_line(move, coordinates, round, king)
+    moves = []
+    row = coordinates[0] 
+    col = coordinates[1]
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
+        moves << new_move
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
+        moves << new_move
       else
         break
       end
