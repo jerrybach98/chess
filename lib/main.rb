@@ -81,8 +81,8 @@ class Game
       chess_notation = @player.select_position
       array_position = @board.select_piece(chess_notation)
       @possible_moves = @piece.check_piece(array_position, @round, @black_moves, @white_moves) # check what piece is being selected and return possible moves
-      pinned_moves(array_position) #adjust the possible moves instance variable
-      p @notation_moves = algebraic_possible_moves(@possible_moves)
+      @notation_moves = algebraic_possible_moves(@possible_moves)
+      puts "Possible Moves: #{@notation_moves}"
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @possible_moves.any?
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
@@ -169,17 +169,8 @@ class Game
     indexes = @board.board_indexes
     white = algebraic_possible_moves(white_attacks(indexes))
     black = algebraic_possible_moves(black_attacks(indexes))
-    puts "White moves #{white}"
-    puts "Black Moves #{black}"
-  end
-
-  def pinned_moves(piece_selection)
-    if @piece.black_pins[piece_selection] != nil && round.odd?
-      @possible_moves = @possible_moves & @piece.black_pins[piece_selection]
-    elsif
-      @piece.white_pins[piece_selection] != nil && round.even?
-      @possible_moves = @possible_moves & @piece.white_pins[piece_selection]
-    end
+    puts "White Attacks #{white}"
+    puts "Black Attacks #{black}"
   end
 
   def reset_game_state
@@ -197,14 +188,14 @@ class Board
 
   def initialize
     @chessboard = [
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♜ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -409,6 +400,7 @@ class Piece
       possible_move = [row + move[0], col + move[1]]
       if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false 
         pawn_moves << possible_move
+        pawn_moves = pinned_moves(pawn_coordinates, pawn_moves, round)
       end
     end
 
@@ -484,6 +476,7 @@ class Piece
         possible_move = [row + move[0], col + move[1]]
         if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
           knight_moves << possible_move
+          knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
         end
       end
     knight_moves
@@ -499,6 +492,7 @@ class Piece
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
       pins(move, bishop_coordinates, round)
       check(move, bishop_coordinates, round)
+      bishop_moves = pinned_moves(bishop_coordinates, bishop_moves, round)
     end
     bishop_moves
   end
@@ -511,6 +505,7 @@ class Piece
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
       pins(move, rook_coordinates, round)
       check(move, rook_coordinates, round)
+      rook_moves = pinned_moves(rook_coordinates, rook_moves, round)
     end
     rook_moves
   end
@@ -523,6 +518,7 @@ class Piece
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
       pins(move, queen_coordinates, round)
       check(move, queen_coordinates, round)
+      queen_moves = pinned_moves(queen_coordinates, queen_moves, round)
     end
     queen_moves
   end
@@ -530,7 +526,6 @@ class Piece
   # Helper function to increment position by base move to move through array in a line
   # first condition only moves on blanks
   # Break generation once possible move traverses over the first enemy piece
-  # add helper method to check if king is on same line?
   def line_traversal(move, coordinates, round)
     moves = []
     row = coordinates[0] 
@@ -577,6 +572,20 @@ class Piece
       false
     end
   end
+
+# this is replacing the current selected move state instead of move generation
+def pinned_moves(coordinates, possible_moves, round)
+  if black_pins[coordinates] != nil && round.odd?
+    new_moves = possible_moves & @black_pins[coordinates]
+  elsif
+    white_pins[coordinates] != nil && round.even?
+    new_moves = possible_moves & @white_pins[coordinates]
+  else 
+    new_moves = possible_moves
+  end
+  new_moves
+end
+
 
   # friendly white rook is targeting friendly white king?
   # need to fix pin line too, friendly white pieces on pinning white king
