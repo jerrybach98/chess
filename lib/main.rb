@@ -45,8 +45,8 @@ class Game
       puts "White Pin line: #{@piece.white_pins}"
       puts "Black Check line: #{@piece.black_checks.uniq}"
       puts "White Check line: #{@piece.white_checks.uniq}"
-      puts "King Black Check line: #{@piece.king_black_checks}"
-      puts "King White Check line: #{@piece.king_white_checks}"
+      puts "King Black Check line: #{@piece.king_black_checks.flatten(1).uniq}"
+      puts "King White Check line: #{@piece.king_white_checks.flatten(1).uniq}"
       prompt_move()
       @board.display_board
       @round += 1
@@ -179,7 +179,10 @@ class Game
     @black_moves = []
     @piece.white_pins = {}
     @piece.black_pins = {}
-    # checks
+    @piece.white_checks = []
+    @piece.black_checks = []
+    @piece.king_white_checks = []
+    @piece.king_black_checks = []
   end
 end
 
@@ -188,13 +191,13 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', ' ♛ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♖ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ '],
       [' ♜ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
@@ -318,8 +321,8 @@ class Piece
     @white_checks = []
     @black_checks = []
 
-    @king_white_checks = {}
-    @king_black_checks = {}
+    @king_white_checks = []
+    @king_black_checks = []
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -491,7 +494,7 @@ class Piece
     base_moves.each do |move|
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
       pins(move, bishop_coordinates, round)
-      check(move, bishop_coordinates, round)
+      generate_check(move, bishop_coordinates, round)
       bishop_moves = pinned_moves(bishop_coordinates, bishop_moves, round)
     end
     bishop_moves
@@ -504,7 +507,7 @@ class Piece
     base_moves.each do |move|
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
       pins(move, rook_coordinates, round)
-      check(move, rook_coordinates, round)
+      generate_check(move, rook_coordinates, round)
       rook_moves = pinned_moves(rook_coordinates, rook_moves, round)
     end
     rook_moves
@@ -517,7 +520,7 @@ class Piece
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
       pins(move, queen_coordinates, round)
-      check(move, queen_coordinates, round)
+      generate_check(move, queen_coordinates, round)
       queen_moves = pinned_moves(queen_coordinates, queen_moves, round)
     end
     queen_moves
@@ -555,15 +558,15 @@ class Piece
 
     base_moves.each do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && legal_move?(possible_move, round, black_moves, white_moves) == true
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && king_legal_move?(possible_move, round, black_moves, white_moves) == true
         king_moves << possible_move
       end
     end
-    king_moves
+    king_moves = king_in_check(king_coordinates, king_moves, round)
   end
 
   # Prevent king from making illegal move and put itself into check
-  def legal_move?(move, round, black_moves, white_moves)
+  def king_legal_move?(move, round, black_moves, white_moves)
     if round.odd? && black_moves.include?(move) == false
       true
     elsif round.even? && white_moves.include?(move) == false
@@ -573,12 +576,22 @@ class Piece
     end
   end
 
-# this is replacing the current selected move state instead of move generation
+  def king_in_check(coordinates, moves, round)
+    if @king_black_checks.empty? == false && round.odd?
+      moves = moves - @king_black_checks.flatten(1) 
+    elsif @king_white_checks.empty? == false && round.even?
+      moves = moves - @king_white_checks.flatten(1) 
+    else
+      moves
+    end
+  end
+
+# See what moves a pinned piece can make
 def pinned_moves(coordinates, possible_moves, round)
-  if black_pins[coordinates] != nil && round.odd?
+  if @black_pins[coordinates] != nil && round.odd?
     new_moves = possible_moves & @black_pins[coordinates]
   elsif
-    white_pins[coordinates] != nil && round.even?
+    @white_pins[coordinates] != nil && round.even?
     new_moves = possible_moves & @white_pins[coordinates]
   else 
     new_moves = possible_moves
@@ -591,7 +604,7 @@ end
   # need to fix pin line too, friendly white pieces on pinning white king
   # white and black moves are working cuz they have seperate color functions
 
-  def check(move, coordinates, round)
+  def generate_check(move, coordinates, round)
     white_pieces = [' ♗ ', ' ♖ ', ' ♕ ']
     black_pieces = [' ♝ ', ' ♜ ', ' ♛ ']
     piece = @chessboard[coordinates[0]][coordinates[1]]
@@ -608,7 +621,6 @@ end
 
       possible_white_king = king_attack_line(move, coordinates, 1, ' ♚ ')
       add_king_checks(possible_white_king, coordinates, 1, ' ♚ ', @king_white_checks)
-
     end
   end
 
@@ -628,7 +640,7 @@ end
     #enemy = pin_line_pieces(moves, round)
 
     if king == true
-      checks[coordinates] = moves
+      checks << moves
     end
   end
 
