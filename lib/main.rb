@@ -192,13 +192,13 @@ class Board
   def initialize
     @chessboard = [
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', ' ♛ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♗ ', '   ', '   ', '   ', '   ', '   ', ' ♜ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♜ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ '],
-      [' ♜ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♛ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -496,6 +496,7 @@ class Piece
       pins(move, bishop_coordinates, round)
       generate_check(move, bishop_coordinates, round)
       bishop_moves = pinned_moves(bishop_coordinates, bishop_moves, round)
+      bishop_moves = friendly_moves_in_check(bishop_coordinates, bishop_moves, round)
     end
     bishop_moves
   end
@@ -509,6 +510,7 @@ class Piece
       pins(move, rook_coordinates, round)
       generate_check(move, rook_coordinates, round)
       rook_moves = pinned_moves(rook_coordinates, rook_moves, round)
+      rook_moves = friendly_moves_in_check(rook_coordinates, rook_moves, round)
     end
     rook_moves
   end
@@ -522,6 +524,7 @@ class Piece
       pins(move, queen_coordinates, round)
       generate_check(move, queen_coordinates, round)
       queen_moves = pinned_moves(queen_coordinates, queen_moves, round)
+      queen_moves = friendly_moves_in_check(queen_coordinates, queen_moves, round)
     end
     queen_moves
   end
@@ -576,11 +579,23 @@ class Piece
     end
   end
 
+  # Return possible king moves off of check line
   def king_in_check(coordinates, moves, round)
     if @king_black_checks.empty? == false && round.odd?
       moves = moves - @king_black_checks.flatten(1) 
     elsif @king_white_checks.empty? == false && round.even?
       moves = moves - @king_white_checks.flatten(1) 
+    else
+      moves
+    end
+  end
+
+  # Return friendly possible moves when in check on attack line or capture
+  def friendly_moves_in_check(coordinates, moves, round)
+    if @black_checks.empty? == false && round.odd?
+      moves = moves & @black_checks.flatten(1) 
+    elsif @white_checks.empty? == false && round.even?
+      moves = moves & @white_checks.flatten(1) 
     else
       moves
     end
