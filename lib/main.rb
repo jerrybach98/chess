@@ -144,7 +144,7 @@ class Game
 
   def black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    pawn = [' ♟︎ ']
+    pawn = [' ♟ ']
     sub_round = 0
 
     2.times do
@@ -192,13 +192,13 @@ class Board
   def initialize
     @chessboard = [
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♗ ', '   ', '   ', '   ', '   ', '   ', ' ♜ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♜ ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♛ ', ' ♟︎ ', '   ', '   ', '   ', '   ', '   ', '   ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♘ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♙ ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
+      [' ♛ ', '   ', '   ', '   ', '   ', '   ', ' ♟ ', '   ']
     ]
   
     @display = []
@@ -330,7 +330,7 @@ class Piece
   # Returns false if not friendly or blank square
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
-    black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    black = [' ♟ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
     element = @chessboard[row][col]
@@ -346,7 +346,7 @@ class Piece
 
   def enemy_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
-    black = [' ♟︎ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    black = [' ♟ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
     element = @chessboard[row][col]
@@ -373,7 +373,7 @@ class Piece
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
     #check what piece is being selected?
-    if [' ♙ ', ' ♟︎ '].include?(@chessboard[row][col])
+    if [' ♙ ', ' ♟ '].include?(@chessboard[row][col])
       possible_moves = pawn(piece_coordinates, round)
     elsif [' ♘ ', ' ♞ '].include?(@chessboard[row][col])
       possible_moves = knight(piece_coordinates, round)
@@ -404,6 +404,7 @@ class Piece
       if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false 
         pawn_moves << possible_move
         pawn_moves = pinned_moves(pawn_coordinates, pawn_moves, round)
+        pawn_moves = friendly_moves_in_check(pawn_coordinates, pawn_moves, round)
       end
     end
 
@@ -418,7 +419,7 @@ class Piece
 
     if @chessboard[row][col] == ' ♙ '
       attacks = [[row+1, col+1], [row+1, col-1]]
-    elsif @chessboard[row][col] == ' ♟︎ '
+    elsif @chessboard[row][col] == ' ♟ '
       attacks = [[row-1, col+1], [row-1, col-1]]
     end
 
@@ -454,9 +455,9 @@ class Piece
       pawn_moves = [[1, 0], [2, 0]]
     elsif row != 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0]]
-    elsif row == 6 && @chessboard[row][col] == ' ♟︎ ' && @chessboard[row-1][col] == '   '
+    elsif row == 6 && @chessboard[row][col] == ' ♟ ' && @chessboard[row-1][col] == '   '
       pawn_moves = [[-1, 0], [-2, 0]]
-    elsif row != 6 && @chessboard[row][col] == ' ♟︎ ' 
+    elsif row != 6 && @chessboard[row][col] == ' ♟ ' 
       pawn_moves = [[-1, 0]]
     end
     pawn_moves
@@ -480,6 +481,7 @@ class Piece
         if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
           knight_moves << possible_move
           knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
+          knight_moves = friendly_moves_in_check(knight_coordinates, knight_moves, round)
         end
       end
     knight_moves
