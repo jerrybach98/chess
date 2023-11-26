@@ -191,14 +191,14 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♖ ', ' ♖ ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', '   ', ' ♖ ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ '],
-      ['   ', ' ♟ ', '   ', '   ', '   ', ' ♞ ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', ' ♞ ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♔ ', ' ♙ ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♘ ', ' ♝ ', '   ', '   ', '   ', '   ', ' ♟ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
   
     @display = []
@@ -369,6 +369,16 @@ class Piece
     end
   end
 
+  def double_check?(round)
+    if round.odd? && @black_checks.uniq.count == 2
+      true
+    elsif round.even? && @white_checks.uniq.count == 2
+      true
+    else
+      false
+    end
+  end
+
   def check_piece(piece_coordinates, round, black_moves, white_moves)
     row = piece_coordinates[0] 
     col = piece_coordinates[1]
@@ -401,7 +411,7 @@ class Piece
 
     base_moves.map do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false 
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false && double_check?(round) == false
         pawn_moves << possible_move
         pawn_moves = pinned_moves(pawn_coordinates, pawn_moves, round)
         pawn_moves = friendly_moves_in_check(pawn_coordinates, pawn_moves, round)
@@ -481,7 +491,7 @@ class Piece
 
       base_moves.each do |move|
         possible_move = [row + move[0], col + move[1]]
-        if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
+        if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && double_check?(round) == false
           knight_moves << possible_move
           generate_check(move, knight_coordinates, round)
           knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
@@ -546,9 +556,9 @@ class Piece
       row = row + move[0]
       col = col + move[1]
       new_move = [row, col]
-      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false && double_check?(round) == false
         moves << new_move
-      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round)
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) && double_check?(round) == false
         moves << new_move
         break
       else
@@ -606,8 +616,6 @@ class Piece
       moves
     end
   end
-
-
 
 
 # See what moves a pinned piece can make
