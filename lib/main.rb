@@ -191,14 +191,14 @@ class Board
 
   def initialize
     @chessboard = [
+      [' ♖ ', ' ♖ ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ '],
+      ['   ', ' ♟ ', '   ', '   ', '   ', ' ♞ ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♘ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♙ ', '   ', '   ', '   ', '   ', ' ♙ ', '   '],
-      [' ♛ ', '   ', '   ', '   ', '   ', '   ', ' ♟ ', '   ']
+      ['   ', '   ', ' ♞ ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -418,14 +418,17 @@ class Piece
     attack_coordinates = []
 
     if @chessboard[row][col] == ' ♙ '
-      attacks = [[row+1, col+1], [row+1, col-1]]
+      attacks = [[1, 1], [1, -1]]
     elsif @chessboard[row][col] == ' ♟ '
-      attacks = [[row-1, col+1], [row-1, col-1]]
+      attacks = [[-1, 1], [-1, -1]]
     end
 
-    attacks.map do |attack|
-      if move_in_bounds?(attack) && friendly_piece?(attack, round) == false 
-        attack_coordinates << attack
+    attacks.map do |move|
+      #puts "Checking attack[#{row+move[0]}][#{col+ move[1]}]: #{@chessboard[row + move[0]][col + move[1]]}"
+      possible_attack = [row + move[0], col + move[1]]
+      if move_in_bounds?(possible_attack) && friendly_piece?(possible_attack, round) == false 
+        attack_coordinates << possible_attack
+        generate_check(move, pawn_coordinates, round)
       end
     end
     
@@ -480,6 +483,7 @@ class Piece
         possible_move = [row + move[0], col + move[1]]
         if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false
           knight_moves << possible_move
+          generate_check(move, knight_coordinates, round)
           knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
           knight_moves = friendly_moves_in_check(knight_coordinates, knight_moves, round)
         end
@@ -603,6 +607,9 @@ class Piece
     end
   end
 
+
+
+
 # See what moves a pinned piece can make
 def pinned_moves(coordinates, possible_moves, round)
   if @black_pins[coordinates] != nil && round.odd?
@@ -617,18 +624,18 @@ def pinned_moves(coordinates, possible_moves, round)
 end
 
 
-  # friendly white rook is targeting friendly white king?
-  # need to fix pin line too, friendly white pieces on pinning white king
-  # white and black moves are working cuz they have seperate color functions
-
+  # Create line for friendly pieces to block or capture checks
+  # King attack line for king to move out of way or capture check piece
+  # check the piece type based off of given coordinates
   def generate_check(move, coordinates, round)
-    white_pieces = [' ♗ ', ' ♖ ', ' ♕ ']
-    black_pieces = [' ♝ ', ' ♜ ', ' ♛ ']
+    white_pieces = [' ♗ ', ' ♖ ', ' ♕ ', ' ♘ ', ' ♙ ']
+    black_pieces = [' ♝ ', ' ♜ ', ' ♛ ', ' ♞ ', ' ♟ ']
     piece = @chessboard[coordinates[0]][coordinates[1]]
 
     if black_pieces.include?(piece)
       black_possible_check = check_attack_line(move, coordinates, 2, ' ♔ ')
       add_checks(black_possible_check, coordinates, 2, ' ♔ ', @black_checks)
+
       possible_black_king = king_attack_line(move, coordinates, 2, ' ♔ ')
       add_king_checks(possible_black_king, coordinates, 2, ' ♔ ', @king_black_checks)
 
@@ -641,6 +648,7 @@ end
     end
   end
 
+  # Adds friendly check line to an array instance variable
   def add_checks(moves, coordinates, round, king_color, checks)
     king = find_king(moves, king_color)
     enemy = pin_line_pieces(moves, round)
@@ -651,10 +659,9 @@ end
     end
   end
 
-  # as a hash? king can move on hash key but not values
+  # Adds check line for king movement to instance variable
   def add_king_checks(moves, coordinates, round, king_color, checks)
     king = find_king(moves, king_color)
-    #enemy = pin_line_pieces(moves, round)
 
     if king == true
       checks << moves
@@ -664,31 +671,67 @@ end
 
   # For friendly pieces to block or capture checks
   def check_attack_line(move, coordinates, round, king)
+    line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♝ ', ' ♜ ', ' ♛ ']
+    non_line = [' ♘ ', ' ♙ ', ' ♞ ', ' ♟ ']
     moves = []
     row = coordinates[0] 
     col = coordinates[1]
-    7.times do
-      row = row + move[0]
-      col = col + move[1]
-      new_move = [row, col]
-      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
-      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
-        moves << new_move
-      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
-        moves << new_move
-        break
-      else
-        break
-      end
+
+    if line_piece.include?(@chessboard[row][col])
+      proccess_attack_line(move, row, col, round, king, moves)
+    else non_line.include?(@chessboard[row][col])
+      pawn_knight_checks(move, row, col, round, king, moves)
     end
     moves
   end
 
-  # For king to move out of way or capture check piece 
+
+  def proccess_attack_line(move, row, col, round, king, moves)
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
+        moves << new_move
+      elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
+        moves << new_move
+        break
+      else
+        break
+      end
+    end
+  end
+
+  def pawn_knight_checks(move, row, col, round, king, moves)
+    row = row + move[0]
+    col = col + move[1]
+    new_move = [row, col]
+    #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+    if move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
+    p  moves << new_move
+    end
+  end
+
+  # Create enemy moves for king to move out of way or capture checking piece 
   def king_attack_line(move, coordinates, round, king)
+    line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♝ ', ' ♜ ', ' ♛ ']
+    non_line = [' ♘ ', ' ♙ ', ' ♞ ', ' ♟ ']
     moves = []
     row = coordinates[0] 
     col = coordinates[1]
+
+    if line_piece.include?(@chessboard[row][col])
+      proccess_king_attack_line(move, row, col, round, king, moves)
+    else non_line.include?(@chessboard[row][col])
+      pawn_knight_checks(move, row, col, round, king, moves)
+    end
+    
+    moves
+  end
+
+  # Helper function 
+  def proccess_king_attack_line(move, row, col, round, king, moves)
     7.times do
       row = row + move[0]
       col = col + move[1]
@@ -702,7 +745,6 @@ end
         break
       end
     end
-    moves
   end
 
 
@@ -762,7 +804,7 @@ end
     end
   end
 
-  # Need two enemy pieces to meet pin criteria
+  # Need two enemy pieces to meet pin criteria, check for how many enemy
   def pin_line_pieces(moves, round)
     enemy = 0
 
