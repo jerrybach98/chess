@@ -10,8 +10,8 @@ class Game
     @notation_moves = [] # for faster testing
     @white_attacks = []
     @black_attacks = []
-    @possible_white = []
-    @possible_black = []
+    @all_white_moves = []
+    @all_black_moves = []
   end
 
   # Show notation For faster puts testing
@@ -38,18 +38,24 @@ class Game
     #return color win announcement
   end
 
+  def debug_announcements
+    puts "Black Pin line: #{@piece.black_pins}"
+    puts "White Pin line: #{@piece.white_pins}"
+    puts "Black Check line: #{@piece.black_checks.uniq}"
+    puts "White Check line: #{@piece.white_checks.uniq}"
+    puts "King Black Check line: #{@piece.king_black_checks.flatten(1).uniq}"
+    puts "King White Check line: #{@piece.king_white_checks.flatten(1).uniq}"
+  end
+
 
   def game_loop
     loop do
       reset_game_state()
       all_possible_attacks()
-      puts "Black Pin line: #{@piece.black_pins}"
-      puts "White Pin line: #{@piece.white_pins}"
-      puts "Black Check line: #{@piece.black_checks.uniq}"
-      puts "White Check line: #{@piece.white_checks.uniq}"
-      puts "King Black Check line: #{@piece.king_black_checks.flatten(1).uniq}"
-      puts "King White Check line: #{@piece.king_white_checks.flatten(1).uniq}"
+      debug_announcements()
+      checkmate?()
       prompt_move()
+      checkmate?()
       @board.display_board
       @round += 1
       reset_game_state()
@@ -175,7 +181,45 @@ class Game
     puts "Black Attacks #{black}"
   end
 
-  
+  def checkmate?
+    indexes = @board.board_indexes
+    white = algebraic_possible_moves(generate_white_moves(indexes))
+    black = algebraic_possible_moves(generate_black_moves(indexes))
+    puts "White moves for check: #{white}"
+    puts "Black moves for check: #{black}"
+  end
+
+  def generate_white_moves(indexes)
+    white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ', ' ♙ ']
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if white.include?(element)
+        @all_white_moves.concat(@piece.check_piece(index, 1, @black_attacks, @all_white_moves))
+      end
+    end
+  @all_white_moves
+  end
+
+  def generate_black_moves(indexes)
+    black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
+    pawn = [' ♟ ']
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if black.include?(element)
+        @all_black_moves.concat(@piece.check_piece(index, 2, @all_black_moves, @white_attacks))
+      elsif pawn.include?(element)
+        @all_black_moves.concat(@piece.pawn_attacks(index, 2))
+      end
+    end
+
+    @all_black_moves
+  end
 
   def reset_game_state
     @selected_possible_moves = []
@@ -187,6 +231,8 @@ class Game
     @piece.black_checks = []
     @piece.king_white_checks = []
     @piece.king_black_checks = []
+    @all_white_moves = []
+    @all_black_moves = []
   end
 end
 
@@ -200,9 +246,9 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♙ ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', ' ♜ ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', ' ♜ ', '   ', '   ', '   ', '   ', '   ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♛ '],
+      ['   ', '   ', '   ', '   ', '   ', ' ♞ ', ' ♔ ', ' ♜ ']
     ]
   
     @display = []
@@ -744,7 +790,7 @@ end
     moves
   end
 
-  # Helper function 
+  # Helper function create line for king to move out of
   def proccess_king_attack_line(move, row, col, round, king, moves)
     7.times do
       row = row + move[0]
@@ -755,6 +801,9 @@ end
         moves << new_move
       elsif move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
         moves << new_move
+      elsif move_in_bounds?(new_move) && friendly_piece?(new_move, round)
+        moves << new_move
+        break
       else
         break
       end
