@@ -45,6 +45,8 @@ class Game
     puts "White Check line: #{@piece.white_checks.uniq}"
     puts "King Black Check line: #{@piece.king_black_checks.flatten(1).uniq}"
     puts "King White Check line: #{@piece.king_white_checks.flatten(1).uniq}"
+    puts "Black Protected Piece: #{algebraic_possible_moves(@piece.black_protected)}"
+    puts "White Protected Piece: #{algebraic_possible_moves(@piece.white_protected)}"
   end
 
 
@@ -130,21 +132,19 @@ class Game
   def white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
-    sub_round = 0
-
-    2.times do
-    sub_round += 1
-      indexes.each do |index|
-        row = index[0]
-        col = index[1]
-        element = @chessboard[row][col]
-        if white.include?(element)
-          @white_attacks.concat(@piece.check_piece(index, sub_round, @black_attacks, @white_attacks))
-        elsif pawn.include?(element)
-          @white_attacks.concat(@piece.pawn_attacks(index, sub_round))
-        end
+    
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if white.include?(element)
+        @white_attacks.concat(@piece.check_piece(index, 1, @black_attacks, @white_attacks))
+      elsif pawn.include?(element)
+        @white_attacks.concat(@piece.pawn_attacks(index, 1))
       end
     end
+
+    # add @piece.white_protected to white_attacks
 
     moves = @white_attacks.uniq
   end
@@ -153,19 +153,15 @@ class Game
   def black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     pawn = [' ♟ ']
-    sub_round = 0
-
-    2.times do
-    sub_round += 1
-      indexes.each do |index|
-        row = index[0]
-        col = index[1]
-        element = @chessboard[row][col]
-        if black.include?(element)
-          @black_attacks.concat(@piece.check_piece(index, sub_round, @black_attacks, @white_attacks))
-        elsif pawn.include?(element)
-          @black_attacks.concat(@piece.pawn_attacks(index, sub_round))
-        end
+    
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      if black.include?(element)
+        @black_attacks.concat(@piece.check_piece(index, 2, @black_attacks, @white_attacks))
+      elsif pawn.include?(element)
+        @black_attacks.concat(@piece.pawn_attacks(index, 2))
       end
     end
 
@@ -233,6 +229,7 @@ class Game
     @piece.king_black_checks = []
     @all_white_moves = []
     @all_black_moves = []
+    # @piece.white_protected
   end
 end
 
@@ -242,13 +239,13 @@ class Board
   def initialize
     @chessboard = [
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♞ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♛ '],
-      ['   ', '   ', '   ', '   ', '   ', ' ♞ ', ' ♔ ', ' ♜ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', ' ♜ ']
     ]
   
     @display = []
@@ -360,7 +357,7 @@ end
 
 # put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks
+  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks, :black_protected, :white_protected
 
   def initialize(board)
     @board = board
@@ -373,6 +370,8 @@ class Piece
 
     @king_white_checks = []
     @king_black_checks = []
+    @black_protected = []
+    @white_protected = []
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -489,6 +488,9 @@ class Piece
       if move_in_bounds?(possible_attack) && friendly_piece?(possible_attack, round) == false 
         attack_coordinates << possible_attack
         generate_check(move, pawn_coordinates, round)
+        generate_protected_positions(move, pawn_coordinates, round)
+      elsif move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == true
+        generate_protected_positions(move, pawn_coordinates, round)
       end
     end
     
@@ -539,15 +541,17 @@ class Piece
     base_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
     knight_moves = []
 
-      base_moves.each do |move|
-        possible_move = [row + move[0], col + move[1]]
-        if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && double_check?(round) == false
-          knight_moves << possible_move
-          generate_check(move, knight_coordinates, round)
-          knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
-          knight_moves = friendly_moves_in_check(knight_coordinates, knight_moves, round)
-        end
+    base_moves.each do |move|
+      possible_move = [row + move[0], col + move[1]]
+      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && double_check?(round) == false
+        knight_moves << possible_move
+        generate_check(move, knight_coordinates, round)
+        knight_moves = pinned_moves(knight_coordinates, knight_moves, round)
+        knight_moves = friendly_moves_in_check(knight_coordinates, knight_moves, round)
+      elsif move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == true
+        generate_protected_positions(move, knight_coordinates, round)
       end
+    end
     knight_moves
   end
 
@@ -561,6 +565,7 @@ class Piece
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
       pins(move, bishop_coordinates, round)
       generate_check(move, bishop_coordinates, round)
+      generate_protected_positions(move, bishop_coordinates, round)
       bishop_moves = pinned_moves(bishop_coordinates, bishop_moves, round)
       bishop_moves = friendly_moves_in_check(bishop_coordinates, bishop_moves, round)
     end
@@ -575,6 +580,7 @@ class Piece
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
       pins(move, rook_coordinates, round)
       generate_check(move, rook_coordinates, round)
+      generate_protected_positions(move, rook_coordinates, round)
       rook_moves = pinned_moves(rook_coordinates, rook_moves, round)
       rook_moves = friendly_moves_in_check(rook_coordinates, rook_moves, round)
     end
@@ -589,6 +595,7 @@ class Piece
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
       pins(move, queen_coordinates, round)
       generate_check(move, queen_coordinates, round)
+      generate_protected_positions(move, queen_coordinates, round)
       queen_moves = pinned_moves(queen_coordinates, queen_moves, round)
       queen_moves = friendly_moves_in_check(queen_coordinates, queen_moves, round)
     end
@@ -629,6 +636,8 @@ class Piece
       possible_move = [row + move[0], col + move[1]]
       if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && king_legal_move?(possible_move, round, black_attacks, white_attacks) == true
         king_moves << possible_move
+      elsif move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == true
+        generate_protected_positions(move, king_coordinates, round)
       end
     end
     king_moves = king_in_check(king_coordinates, king_moves, round)
@@ -731,7 +740,7 @@ end
 
   # For friendly pieces to block or capture checks
   def check_attack_line(move, coordinates, round, king)
-    line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♝ ', ' ♜ ', ' ♛ ']
+    line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     non_line = [' ♘ ', ' ♙ ', ' ♞ ', ' ♟ ']
     moves = []
     row = coordinates[0] 
@@ -911,6 +920,54 @@ end
     end
   
     king
+  end
+
+
+
+  def generate_protected_positions(move, coordinates, round)
+    white_line_piece = [' ♗ ', ' ♖ ', ' ♕ ']
+    black_line_piece = [' ♝ ', ' ♜ ', ' ♛ ']
+    black_non_line = [' ♞ ', ' ♟ ']
+    whte_non_line = [' ♘ ', ' ♙ ']
+  
+    row = coordinates[0] 
+    col = coordinates[1]
+
+    if white_line_piece.include?(@chessboard[row][col])
+      line_protected(move, coordinates, 1, @white_protected)
+    elsif whte_non_line.include?(@chessboard[row][col])
+      pawn_knight_protected(move, row, col, coordinates, 1, @white_protected)
+
+    elsif black_line_piece.include?(@chessboard[row][col])
+    line_protected(move, coordinates, 2, @black_protected)
+    else black_non_line.include?(@chessboard[row][col])
+      pawn_knight_protected(move, row, col, coordinates, 2, @black_protected)
+    end
+    
+  end
+
+  def line_protected(move, coordinates, round, protected_moves)
+    row = coordinates[0] 
+    col = coordinates[1]
+    7.times do
+      row = row + move[0]
+      col = col + move[1]
+      new_move = [row, col]
+      if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == true && enemy_piece?(new_move, round) == false
+        protected_moves << new_move
+        break
+      end
+    end
+  end
+
+  def pawn_knight_protected(move, row, col, coordinates, round, protected_moves)
+    row = row + move[0]
+    col = col + move[1]
+    new_move = [row, col]
+    #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+    if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == true && enemy_piece?(new_move, round) == false
+      protected_moves << new_move
+    end
   end
 
 
