@@ -55,7 +55,7 @@ class Game
       reset_game_state()
       all_possible_attacks()
       debug_announcements()
-      return if checkmate? == true
+      return if win_condition?
       prompt_move()
       @board.display_board
       #return if checkmate? == true    #check win condition
@@ -174,15 +174,35 @@ class Game
     puts "Black Attacks #{black}"
   end
 
-  def checkmate?
+  # Generates a list of possible moves that can be made by every piece. Moves will be limited when King is in check forcing to act on check. If there is no moves available in check, it will be a checkmate and end
+  def checkmate?(white, black)
+    if white.empty? && @piece.king_black_checks.empty? == false || black.empty? && @piece.king_white_checks.empty? == false
+      true
+    else
+      false
+    end
+  end
+
+  def stalemate?(white, black)
+    if white.empty? || black.empty?
+      true
+    else
+      false
+    end
+  end
+
+  def win_condition?
     indexes = @board.board_indexes
     white = algebraic_possible_moves(generate_white_moves(indexes))
     black = algebraic_possible_moves(generate_black_moves(indexes))
     puts "White moves for check: #{white}"
     puts "Black moves for check: #{black}"
-    
-    if white.empty? || black.empty?
-      p "Checkmate!"
+
+    if checkmate?(white, black)
+      puts "Checkmate!"
+      true
+    elsif stalemate?(white, black)
+      puts "stalemate!"
       true
     else
       false
@@ -246,8 +266,8 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♜ ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♜ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', ' ♜ ', '   ', ' ♜ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', '   ']
     ]
   
@@ -1070,8 +1090,7 @@ game.play_game
   # Write tests for anything typed into command line repeatedly
 
 # psuedo
-# PIECES
-# win conditions
+
 
 # edge cases
   # stalemate if king has no available moves draw / possible move array empty
