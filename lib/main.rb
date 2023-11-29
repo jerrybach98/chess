@@ -55,14 +55,11 @@ class Game
       reset_game_state()
       all_possible_attacks()
       debug_announcements()
-      checkmate?()
+      return if checkmate? == true
       prompt_move()
-      checkmate?()
       @board.display_board
+      #return if checkmate? == true    #check win condition
       @round += 1
-      reset_game_state()
-      all_possible_attacks()
-      #check win condition
     end
   end
 
@@ -127,7 +124,7 @@ class Game
     puts "[2] Player vs Computer"
   end
 
-  # Switch round variable to influence round logic allowing generation of moves on enemy pieces and friendly protected pieces
+  # List of possible attacks and protected pieces to prevent enemy king from moving on
   # Pawn attacks are edge cases since they attack different from traversal
   def white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
@@ -145,8 +142,8 @@ class Game
     end
 
     # add @piece.white_protected to white_attacks
-
-    moves = @white_attacks.uniq
+    # #concat white_protected
+    @white_attacks = @white_attacks.concat(@piece.white_protected).uniq
   end
 
 
@@ -164,8 +161,8 @@ class Game
         @black_attacks.concat(@piece.pawn_attacks(index, 2))
       end
     end
-
-    moves = @black_attacks.uniq
+  
+    @black_attacks = @black_attacks.concat(@piece.black_protected).uniq
   end
 
   # shows all possible attacks on empty spaces, enemy units, and protected pieces so that King can't move over them
@@ -183,8 +180,16 @@ class Game
     black = algebraic_possible_moves(generate_black_moves(indexes))
     puts "White moves for check: #{white}"
     puts "Black moves for check: #{black}"
+    
+    if white.empty? || black.empty?
+      p "Checkmate!"
+      true
+    else
+      false
+    end
   end
 
+  # See what moves are available especially in check, if moves are unavailble then it is a checkmate
   def generate_white_moves(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ', ' ♙ ']
 
@@ -196,12 +201,11 @@ class Game
         @all_white_moves.concat(@piece.check_piece(index, 1, @black_attacks, @all_white_moves))
       end
     end
-  @all_white_moves
+    @all_white_moves
   end
 
   def generate_black_moves(indexes)
-    black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    pawn = [' ♟ ']
+    black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ', ' ♟ ']
 
     indexes.each do |index|
       row = index[0]
@@ -209,8 +213,6 @@ class Game
       element = @chessboard[row][col]
       if black.include?(element)
         @all_black_moves.concat(@piece.check_piece(index, 2, @all_black_moves, @white_attacks))
-      elsif pawn.include?(element)
-        @all_black_moves.concat(@piece.pawn_attacks(index, 2))
       end
     end
 
@@ -229,7 +231,8 @@ class Game
     @piece.king_black_checks = []
     @all_white_moves = []
     @all_black_moves = []
-    # @piece.white_protected
+    @piece.white_protected = []
+    @piece.black_protected = []
   end
 end
 
@@ -238,14 +241,14 @@ class Board
 
   def initialize
     @chessboard = [
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♖ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♖ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♞ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', ' ♜ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♜ ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♜ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', '   ']
     ]
   
     @display = []
@@ -489,7 +492,7 @@ class Piece
         attack_coordinates << possible_attack
         generate_check(move, pawn_coordinates, round)
         generate_protected_positions(move, pawn_coordinates, round)
-      elsif move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == true
+      elsif move_in_bounds?(possible_attack) && friendly_piece?(possible_attack, round) == true
         generate_protected_positions(move, pawn_coordinates, round)
       end
     end
