@@ -1,6 +1,6 @@
 class Game
   attr_accessor :round
-  def initialize(board, player, piece)
+  def initialize(board, player, piece, special)
     @board = board
     @chessboard = board.chessboard
     @player = player
@@ -12,6 +12,7 @@ class Game
     @black_attacks = []
     @all_white_moves = []
     @all_black_moves = []
+    @special = special
   end
 
   # Show notation For faster puts testing
@@ -57,7 +58,7 @@ class Game
       debug_announcements()
       return if win_condition?
       prompt_move()
-      @board.pawn_promotion
+      @special.pawn_promotion
       @board.display_board
       #return if checkmate? == true    #check win condition
       @round += 1
@@ -262,14 +263,14 @@ class Board
 
   def initialize
     @chessboard = [
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♖ ', '   '],
-      ['   ', '   ', '   ', ' ♟ ', '   ', '   ', '   ', '   '],
+      [' ♖ ', '   ', '   ', '   ', ' ♔ ', '   ', '   ', ' ♖ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', ' ♙ ', '   ', ' ♜ ', '   ', ' ♜ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', '   ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', ' ♚ ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -377,30 +378,13 @@ class Board
     @chessboard[old_row][old_col] = '   '
   end
 
-  def pawn_promotion
-    indexes = board_indexes()
-    puts "first"
-
-    indexes.each do |index|
-      row = index[0]
-      col = index[1]
-      puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
-
-      if row == 7 && @chessboard[row][col] == ' ♙ '
-        @chessboard[row][col] = ' ♕ '
-      elsif row == 0 && @chessboard[row][col] == ' ♟ ' 
-        @chessboard[row][col] = ' ♛ '
-      end
-    end
-  end
-
 end
 
 # put accessor in class if you want to access it in a different one
 class Piece
   attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks, :black_protected, :white_protected
 
-  def initialize(board)
+  def initialize(board, special)
     @board = board
     @chessboard = board.chessboard
     @white_pins = {}
@@ -413,6 +397,7 @@ class Piece
     @king_black_checks = []
     @black_protected = []
     @white_protected = []
+    @special = special
   end
 
   # Used to identify that the correct colored piece is being selected
@@ -679,6 +664,7 @@ class Piece
         generate_protected_positions(move, king_coordinates, round)
       end
     end
+    # king moves << 
     king_moves = king_in_check(king_coordinates, king_moves, round)
   end
 
@@ -693,7 +679,7 @@ class Piece
     end
   end
 
-  # Return possible king moves off of check line
+  # Return possible king moves in check by removing any moves from the check line
   def king_in_check(coordinates, moves, round)
     if @king_black_checks.empty? == false && round.odd?
       puts "Check!"
@@ -962,7 +948,7 @@ end
   end
 
 
-
+  # Generates list of pieces that have another piece protecting it 
   def generate_protected_positions(move, coordinates, round)
     white_line_piece = [' ♗ ', ' ♖ ', ' ♕ ']
     black_line_piece = [' ♝ ', ' ♜ ', ' ♛ ']
@@ -1007,12 +993,6 @@ end
     if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == true && enemy_piece?(new_move, round) == false
       protected_moves << new_move
     end
-  end
-
-
-  def castling
-    #squares between king and rook are vacant
-    # use a flag if king or rook has moved from their original position?
   end
 
   # Show notation For faster puts testing
@@ -1082,6 +1062,51 @@ class Player
 
 end
 
+class Special_moves
+  def initialize(board)
+    @board = board
+    @chessboard = board.chessboard
+  end
+
+  def pawn_promotion
+    indexes = @board.board_indexes()
+    puts "first"
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+
+      if row == 7 && @chessboard[row][col] == ' ♙ '
+        @chessboard[row][col] = ' ♕ '
+      elsif row == 0 && @chessboard[row][col] == ' ♟ ' 
+        @chessboard[row][col] = ' ♛ '
+      end
+    end
+  end
+
+  def castling(king_coordinates)
+    row = king_coordinates[0] 
+    col = king_coordinates[1]
+    white_kingside = [0, 6]
+    white_queenside = [0, 2]
+    castle_moves = []
+    # empty spaces == '   '
+
+    array = [[1,2], [2,2]]
+    moves = [[1,2], [2,2], [3,3]]
+
+    if @chessboard[row][col] == ' ♔ ' && king_white_checks.empty? #king hasn't moved flag && kingside rook hasn't moved flag && black attacks doesn't include F1 or G1 / C1 or D1 && spaces are empty
+      castle_moves << white_kingside
+    elsif @chessboard[row][col] == ' ♔ ' && king_white_checks.empty? #king hasn't moved flag && queenside rook hasn't moved flag
+      castle_moves << white_queenside
+    end
+
+    castle_moves
+  end
+
+end
+
 
 class Serializer
   # Make game saveable by serializing with JSON
@@ -1093,9 +1118,10 @@ class Computer
 end
 
 board = Board.new
-piece = Piece.new(board)
+special = Special_moves.new(board)
+piece = Piece.new(board, special)
 player = Player.new(board, piece)
-game = Game.new(board, player, piece)
+game = Game.new(board, player, piece, special)
 game.play_game
 
 
@@ -1128,11 +1154,9 @@ game.play_game
     # randomly select available piece
     # randomly select available move
 # serializer / save (done before on hangman)
+  # save instance variables
 
+# put tests in folder
 
-# other classes
-# display class?
-# movement / validate moves
-  # edge cases, pawn promotion, en_passant, castling, 
 
 #Private, style guide, clean code
