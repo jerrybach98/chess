@@ -57,6 +57,7 @@ class Game
       debug_announcements()
       return if win_condition?
       prompt_move()
+      @board.pawn_promotion
       @board.display_board
       #return if checkmate? == true    #check win condition
       @round += 1
@@ -262,12 +263,12 @@ class Board
   def initialize
     @chessboard = [
       ['   ', '   ', '   ', '   ', '   ', '   ', ' ♖ ', '   '],
+      ['   ', '   ', '   ', ' ♟ ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', ' ♜ ', '   ', ' ♜ '],
+      ['   ', '   ', '   ', ' ♙ ', '   ', ' ♜ ', '   ', ' ♜ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', ' ♔ ', '   ']
     ]
   
@@ -374,6 +375,23 @@ class Board
     old_col = piece[1]
     @chessboard[new_row][new_col] = @chessboard[old_row][old_col]
     @chessboard[old_row][old_col] = '   '
+  end
+
+  def pawn_promotion
+    indexes = board_indexes()
+    puts "first"
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+
+      if row == 7 && @chessboard[row][col] == ' ♙ '
+        @chessboard[row][col] = ' ♕ '
+      elsif row == 0 && @chessboard[row][col] == ' ♟ ' 
+        @chessboard[row][col] = ' ♛ '
+      end
+    end
   end
 
 end
@@ -551,11 +569,9 @@ class Piece
     pawn_moves
   end
 
+  
   def en_passant
     # https://en.wikipedia.org/wiki/En_passant
-  end
-
-  def pawn_promotion
   end
 
   def knight(knight_coordinates, round)
@@ -1093,8 +1109,6 @@ game.play_game
 
 
 # edge cases
-  # stalemate if king has no available moves draw / possible move array empty
-  # pawn promotion / promote to queen when reaching opposite side
   # castling, use flags / prompt
     # add rook to possible move list? if flag
     # select / king / select castle
@@ -1111,9 +1125,9 @@ game.play_game
 # simple ai / select game mode
   # player vs player
   # player vs computer
-    # randomly select piece
-    # randomly select move
-# serializer
+    # randomly select available piece
+    # randomly select available move
+# serializer / save (done before on hangman)
 
 
 # other classes
