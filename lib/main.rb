@@ -58,7 +58,7 @@ class Game
       debug_announcements()
       return if win_condition?
       prompt_move()
-      @special.pawn_promotion
+      implement_special_moves()
       @board.display_board
       #return if checkmate? == true    #check win condition
       @round += 1
@@ -241,6 +241,12 @@ class Game
     @all_black_moves
   end
 
+  def implement_special_moves
+    @special.pawn_promotion
+    @special.update_board_castle
+    @special.flag_castle_positions
+  end
+
   def reset_game_state
     @selected_possible_moves = []
     @white_attacks = []
@@ -259,7 +265,7 @@ class Game
 end
 
 class Board
-  attr_accessor :chessboard, :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king
+  attr_accessor :chessboard
 
   def initialize
     @chessboard = [
@@ -268,34 +274,12 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♖ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♜ ', '   ', '   ', '   ', ' ♚ ', '   ', '   ', ' ♜ ']
     ]
   
     @display = []
-    @a1_rook = true
-    @h1_rook = true
-    @white_king = true
-    @a8_rook = true
-    @h8_rook = true
-    @black_king = true
-  end
-
-  def flag_castle_positions
-    if @chessboard[0][0] != ' ♖ '
-      @a1_rook = false
-    elsif @chessboard[0][7] != ' ♖ '
-      @h1_rook = false
-    elsif @chessboard[0][4] != ' ♔ '
-      @white_king = false
-    elsif @chessboard[7][0] != ' ♜ '
-      @a8_rook = false
-    elsif @chessboard[7][7] != ' ♜ '
-      @h8_rook = false
-    elsif @chessboard[7][4] != ' ♚ '
-      @black_king = false
-    end
   end
 
   # returns index of every possible board position
@@ -1088,11 +1072,17 @@ class Special_moves
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
+
+    @a1_rook = true
+    @h1_rook = true
+    @white_king = true
+    @a8_rook = true
+    @h8_rook = true
+    @black_king = true
   end
 
   def pawn_promotion
     indexes = @board.board_indexes()
-    puts "first"
 
     indexes.each do |index|
       row = index[0]
@@ -1107,9 +1097,25 @@ class Special_moves
     end
   end
 
-  # Check if castle is available and add King's castle position to base moves
-  def castling(king_coordinates, round, king_white_checks, king_black_checks, white_attacks, black_attacks)
-    @board.flag_castle_positions
+  def flag_castle_positions
+    @a1_rook = false if @chessboard[0][0] != ' ♖ '
+    @h1_rook = false if @chessboard[0][7] != ' ♖ '
+    @white_king = false if @chessboard[0][4] != ' ♔ '
+    @a8_rook = false if @chessboard[7][0] != ' ♜ '
+    @h8_rook = false if @chessboard[7][7] != ' ♜ '
+    @black_king = false if @chessboard[7][4] != ' ♚ '
+
+    p "a1_rook #{@a1_rook}"
+    p "h1_rook #{@h1_rook}"
+    p "white_king #{@white_king}"
+    p "a8_rook #{@a8_rook}"
+    p "h8_rook #{@h8_rook}"
+    p "black_king #{@black_king}"
+
+  end
+
+  # Check if each castle side is available and add King's castle position to base moves
+  def castling(king_coordinates, round, white_check_line, black_check_line, white_attacks, black_attacks)
     row = king_coordinates[0] 
     col = king_coordinates[1]
     w_kingside_pos = [0, 6]
@@ -1118,40 +1124,66 @@ class Special_moves
     b_queenside_pos = [7, 2]
     castle_moves = []
 
-    if white_kingside_castle?(row, col, king_white_checks, black_attacks)
+    if white_kingside_castle?(row, col, black_check_line, black_attacks)
       castle_moves << w_kingside_pos
-    elsif white_queenside_castle?(row, col, king_white_checks, black_attacks)
-      castle_moves << w_queenside_pos
-    elsif black_kingside_castle?(row, col, king_black_checks, white_attacks)
-      castle_moves << b_kingside_pos
-    elsif black_queenside_castle?(row, col, king_black_checks, white_attacks)
+    elsif black_kingside_castle?(row, col, white_check_line, white_attacks)
       castle_moves << b_kingside_pos
     end
+    
+    if white_queenside_castle?(row, col, black_check_line, black_attacks)
+      castle_moves << w_queenside_pos
+    elsif black_queenside_castle?(row, col, white_check_line, white_attacks)
+      castle_moves << b_queenside_pos
+    end
+
     castle_moves
   end
 
-  # Check piece type, no checks, no pieces between, no attacks between, and if pieces have already moved
-  def white_kingside_castle?(row, col, king_white_checks, black_attacks)
-    if @chessboard[row][col] == ' ♔ ' && king_white_checks.empty? && @chessboard[0][5] == '   ' && @chessboard[0][6] == '   ' && black_attacks.include?([0, 5]) == false && black_attacks.include?([0, 6]) == false && @board.h1_rook == true && @board.white_king = true
+  # Castle Availability: Check King Color, can't escape check, no pieces between, no attacks between, and if pieces have already moved
+  # White works now check black
+  def white_kingside_castle?(row, col, black_check_line, black_attacks)
+    if @chessboard[row][col] == ' ♔ ' && black_check_line.empty? && @chessboard[0][5] == '   ' && @chessboard[0][6] == '   ' && black_attacks.include?([0, 5]) == false && black_attacks.include?([0, 6]) == false && @h1_rook == true && @white_king == true
       true
     end
   end
 
-  def white_queenside_castle?(row, col, king_white_checks, black_attacks)
-    if @chessboard[row][col] == ' ♔ ' && king_white_checks.empty? && @chessboard[0][1] == '   ' && @chessboard[0][2] == '   ' && @chessboard[0][3] == '   ' && black_attacks.include?([0, 2]) == false && black_attacks.include?([0, 3]) == false && @board.a1_rook == true && @board.white_king = true
+  def white_queenside_castle?(row, col, black_check_line, black_attacks)
+    if @chessboard[row][col] == ' ♔ ' && black_check_line.empty? && @chessboard[0][1] == '   ' && @chessboard[0][2] == '   ' && @chessboard[0][3] == '   ' && black_attacks.include?([0, 2]) == false && black_attacks.include?([0, 3]) == false && @a1_rook == true && @white_king == true
       true
     end
   end
 
-  def black_kingside_castle?(row, col, king_black_checks, white_attacks)
-    if @chessboard[row][col] == ' ♚ ' && king_black_checks.empty? && @chessboard[7][5] == '   ' && @chessboard[7][6] == '   ' && white_attacks.include?([7, 5]) == false && white_attacks.include?([7, 6]) == false && @board.a8_rook == true && @board.black_king = true
+  def black_kingside_castle?(row, col, white_check_line, white_attacks)
+    if @chessboard[row][col] == ' ♚ ' && white_check_line.empty? && @chessboard[7][5] == '   ' && @chessboard[7][6] == '   ' && white_attacks.include?([7, 5]) == false && white_attacks.include?([7, 6]) == false && @a8_rook == true && @black_king == true
       true
     end
   end
 
-  def black_queenside_castle?(row, col, king_black_checks, white_attacks)
-    if @chessboard[row][col] == ' ♚ ' && king_black_checks.empty? && @chessboard[7][1] == '   ' && @chessboard[7][2] == '   ' && @chessboard[7][3] == '   ' && white_attacks.include?([7, 2]) == false && white_attacks.include?([7, 3]) == false && @board.h8_rook == true && @board.black_king = true
+  def black_queenside_castle?(row, col, white_check_line, white_attacks)
+    if @chessboard[row][col] == ' ♚ ' && white_check_line.empty? && @chessboard[7][1] == '   ' && @chessboard[7][2] == '   ' && @chessboard[7][3] == '   ' && white_attacks.include?([7, 2]) == false && white_attacks.include?([7, 3]) == false && @h8_rook == true && @black_king == true
       true
+    end
+  end
+
+
+    # check board positions like in pawn promotion
+    # if king is in castle location
+    # and if the specific cornerside flags are still true
+    # move the castle next to king's original position
+    # figure out where to put it as moving the king might trigger the flag_castle_positions method
+  def update_board_castle
+    if @chessboard[0][6] == ' ♔ ' && @h1_rook == true && @white_king = true
+      @chessboard[0][5] = ' ♖ '
+      @chessboard[0][7] = '   '
+    elsif @chessboard[0][2] == ' ♔ ' && @a1_rook == true && @white_king = true
+      @chessboard[0][3] = ' ♖ '
+      @chessboard[0][0] = '   '
+    elsif @chessboard[7][6] == ' ♚ ' && @a8_rook == true && @black_king = true
+      @chessboard[7][5] = ' ♜ '
+      @chessboard[7][7] = '   '
+    elsif @chessboard[7][2] == ' ♚ ' && @h8_rook == true && @black_king = true
+      @chessboard[7][3] = ' ♜ '
+      @chessboard[7][0] = '   '
     end
   end
 
@@ -1194,14 +1226,14 @@ game.play_game
     # all rows empty
   # put pieces into sub classes?
   
-  # en passant
-    # pawn can capture enemy pawn if enemy skips in both positions
-    # move must be made immediately after skipping
 
 # put pieces into sub classes?
-# list of possible moves
+
+
+# list of possible moves / clear display
 # learn how to refresh/clear console and update after every move?
   # or simulate it
+
 # simple ai / select game mode
   # player vs player
   # player vs computer
