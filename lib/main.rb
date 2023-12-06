@@ -34,6 +34,7 @@ class Game
   def play_game
     introduction
     @player.select_mode
+    print "\e[2J\e[H"
     @board.display_board
     game_loop()
     #return color win announcement
@@ -54,13 +55,13 @@ class Game
   def game_loop
     loop do
       reset_game_state()
+      #debug_announcements()
       all_possible_attacks()
-      debug_announcements()
       return if win_condition?
       prompt_move()
       implement_special_moves()
+      print "\e[2J\e[H"
       @board.display_board
-      #return if checkmate? == true    #check win condition
       @round += 1
     end
   end
@@ -76,10 +77,11 @@ class Game
   def prompt_move 
     puts "#{player_turn}: Select a piece"
     selection = prompt_valid_selection()
+    print "\e[2J\e[H"
     @board.display_board
-    
+    puts "Possible Moves: #{@notation_moves.sort{|a, b| a <=> b}.join(', ')}"
     puts "#{player_turn}: Select a position"
-    p move = prompt_valid_move()
+    move = prompt_valid_move()
     @board.move_piece(selection, move)
     
   end
@@ -91,7 +93,6 @@ class Game
       array_position = @board.select_piece(chess_notation)
       @selected_possible_moves = @piece.check_piece(array_position, @round, @black_attacks, @white_attacks) # check what piece is being selected and return possible moves
       @notation_moves = algebraic_possible_moves(@selected_possible_moves)
-      puts "Possible Moves: #{@notation_moves}"
       # if possible moves.empty? when selecting, deselect the piece
       return array_position if @piece.friendly_piece?(array_position, @round) && @selected_possible_moves.any?
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
@@ -103,9 +104,9 @@ class Game
   def prompt_valid_move
     loop do
       chess_notation = @player.select_position
-      p array_move = @board.select_piece(chess_notation)
+      array_move = @board.select_piece(chess_notation)
        if @selected_possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
-        p "Round number: #{@round}"
+        #p "Round number: #{@round}"
         return array_move
        end
       puts "\nInvalid, enter a move with algebraic notation"
@@ -115,9 +116,10 @@ class Game
   end
 
   def introduction
-    puts "Wecome to chess!"
+    print "\e[2J\e[H"
+    puts "Welcome to chess!"
     puts "\nHow to play:"
-    puts "Using algebraic notation eg. d2"
+    puts "\nUsing algebraic notation eg. d2"
     puts "1. Enter the position of the piece you want to select"
     puts "2. Enter where you want to move the piece"
     @board.display_board
@@ -167,13 +169,13 @@ class Game
     @black_attacks = @black_attacks.concat(@piece.black_protected).uniq
   end
 
-  # shows all possible attacks on empty spaces, enemy units, and protected pieces so that King can't move over them
+  # Calls functions that show all possible attacks on empty spaces, enemy units, and protected pieces so that King can't move over them
   def all_possible_attacks
     indexes = @board.board_indexes
     white = algebraic_possible_moves(white_attacks(indexes))
     black = algebraic_possible_moves(black_attacks(indexes))
-    puts "White Attacks #{white}"
-    puts "Black Attacks #{black}"
+    #puts "White Attacks #{white}"
+    #puts "Black Attacks #{black}"
   end
 
   # Generates a list of possible moves that can be made by every piece. Moves will be limited when King is in check forcing to act on check. If there is no moves available in check, it will be a checkmate and end
@@ -197,8 +199,8 @@ class Game
     indexes = @board.board_indexes
     white = algebraic_possible_moves(generate_white_moves(indexes))
     black = algebraic_possible_moves(generate_black_moves(indexes))
-    puts "White moves for check: #{white}"
-    puts "Black moves for check: #{black}"
+    #puts "White moves for check: #{white}"
+    #puts "Black moves for check: #{black}"
 
     if checkmate?(white, black)
       puts "Checkmate!"
@@ -206,6 +208,9 @@ class Game
     elsif stalemate?(white, black)
       puts "stalemate!"
       true
+    elsif @piece.king_black_checks.empty? == false && round.odd? || @piece.king_white_checks.empty? == false && round.even?
+      puts "Check!"
+      false
     else
       false
     end
@@ -274,9 +279,9 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', ' ♖ ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', ' ♚ ', '   ', '   ', ' ♜ ']
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
     ]
   
     @display = []
@@ -688,10 +693,10 @@ class Piece
   # Return possible king moves in check by removing any moves from the check line
   def king_in_check(coordinates, moves, round)
     if @king_black_checks.empty? == false && round.odd?
-      puts "Check!"
+      # puts "Check!"
       moves = moves - @king_black_checks.flatten(1) 
     elsif @king_white_checks.empty? == false && round.even?
-      puts "Check!"
+      # puts "Check!"
       moves = moves - @king_white_checks.flatten(1) 
     else
       moves
@@ -1037,9 +1042,9 @@ class Player
   def select_position
     loop do
       position = gets.chomp.downcase
-      return position if valid_input?(position) # and friendly? == true
+      return position if valid_input?(position)
 
-      puts 'Enter a position with algebraic notation'
+      puts "\nPlease enter a position using algebraic notation"
     end
     position
   end
@@ -1087,7 +1092,7 @@ class Special_moves
     indexes.each do |index|
       row = index[0]
       col = index[1]
-      puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
+      #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
 
       if row == 7 && @chessboard[row][col] == ' ♙ '
         @chessboard[row][col] = ' ♕ '
@@ -1105,12 +1110,12 @@ class Special_moves
     @h8_rook = false if @chessboard[7][7] != ' ♜ '
     @black_king = false if @chessboard[7][4] != ' ♚ '
 
-    p "a1_rook #{@a1_rook}"
-    p "h1_rook #{@h1_rook}"
-    p "white_king #{@white_king}"
-    p "a8_rook #{@a8_rook}"
-    p "h8_rook #{@h8_rook}"
-    p "black_king #{@black_king}"
+    #p "a1_rook #{@a1_rook}"
+    #p "h1_rook #{@h1_rook}"
+    #p "white_king #{@white_king}"
+    #p "a8_rook #{@a8_rook}"
+    #p "h8_rook #{@h8_rook}"
+    #p "black_king #{@black_king}"
 
   end
 
@@ -1172,16 +1177,16 @@ class Special_moves
     # move the castle next to king's original position
     # figure out where to put it as moving the king might trigger the flag_castle_positions method
   def update_board_castle
-    if @chessboard[0][6] == ' ♔ ' && @h1_rook == true && @white_king = true
+    if @chessboard[0][6] == ' ♔ ' && @h1_rook == true && @white_king == true
       @chessboard[0][5] = ' ♖ '
       @chessboard[0][7] = '   '
-    elsif @chessboard[0][2] == ' ♔ ' && @a1_rook == true && @white_king = true
+    elsif @chessboard[0][2] == ' ♔ ' && @a1_rook == true && @white_king == true
       @chessboard[0][3] = ' ♖ '
       @chessboard[0][0] = '   '
-    elsif @chessboard[7][6] == ' ♚ ' && @a8_rook == true && @black_king = true
+    elsif @chessboard[7][6] == ' ♚ ' && @a8_rook == true && @black_king == true
       @chessboard[7][5] = ' ♜ '
       @chessboard[7][7] = '   '
-    elsif @chessboard[7][2] == ' ♚ ' && @h8_rook == true && @black_king = true
+    elsif @chessboard[7][2] == ' ♚ ' && @h8_rook == true && @black_king == true
       @chessboard[7][3] = ' ♜ '
       @chessboard[7][0] = '   '
     end
@@ -1210,27 +1215,9 @@ game.play_game
 
 
 
-# General steps / Brainstorm
-  # focus on single responsibility
-  # Two players can play against each other or basic AI
-  # Write tests for anything typed into command line repeatedly
-
-# psuedo
-
-
 # edge cases
-  # castling, use flags / prompt
-    # add rook to possible move list? if flag
-    # select / king / select castle
-    # rook next to king starting position / king on outside
-    # all rows empty
-  # put pieces into sub classes?
-  
 
-# put pieces into sub classes?
-
-
-# list of possible moves / clear display
+# list of possible moves / clear display / maybe put moves in Alphabetical?
 # learn how to refresh/clear console and update after every move?
   # or simulate it
 
@@ -1242,7 +1229,6 @@ game.play_game
 # serializer / save (done before on hangman)
   # save instance variables
 
+# put pieces into sub classes?
 # put tests in folder
-
-
 #Private, style guide, clean code
