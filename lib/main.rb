@@ -88,9 +88,8 @@ class Game
       game_mode_move()
       implement_special_moves()
       print "\e[2J\e[H"
-      print_ai_move()
-      sleep 0.3
       @board.display_board
+      print_ai_move()
       @round += 1
     end
   end
@@ -105,6 +104,7 @@ class Game
 
   def game_mode_move
     if @round.even? && @mode == 2
+      sleep 1
       ai_move()
     else 
       prompt_move
@@ -315,14 +315,14 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      [' ♙ ', '   ', ' ♖ ', '   ', '   ', '   ', '   ', ' ♟ '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', ' ♚ ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -849,13 +849,14 @@ end
     end
   end
 
+  # when Pawn or knight puts king in check
   def pawn_knight_checks(move, row, col, round, king, moves)
     row = row + move[0]
     col = col + move[1]
     new_move = [row, col]
     #puts "Checking position[#{row}][#{col}]: #{@chessboard[row][col]}"
     if move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
-    p  moves << new_move
+      moves << new_move
     end
   end
 
@@ -1271,12 +1272,6 @@ game.play_game
 
 
 
-
-# simple ai / select game mode
-  # player vs player
-  # player vs computer
-    # randomly select available piece
-    # randomly select available move
 # serializer / save (done before on hangman)
   # save instance variables
 
