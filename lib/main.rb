@@ -1,6 +1,6 @@
 class Game
   attr_accessor :round
-  def initialize(board, player, piece, special)
+  def initialize(board, player, piece, special, computer)
     @board = board
     @chessboard = board.chessboard
     @player = player
@@ -13,6 +13,9 @@ class Game
     @all_white_moves = []
     @all_black_moves = []
     @special = special
+    @mode = nil
+    @computer = computer
+    @printed_ai_move = nil
   end
 
   # Show notation For faster puts testing
@@ -30,10 +33,34 @@ class Game
     new_moves
   end
 
+  def select_mode
+    loop do
+      mode = gets.chomp.to_i
+      return mode if mode.between?(1,2)
+
+      puts 'Enter 1 or 2 to select mode'
+    end
+    
+    mode
+  end
+
+  def introduction
+    print "\e[2J\e[H"
+    puts "Welcome to chess!"
+    puts "\nHow to play:"
+    puts "\nUsing algebraic notation eg. d2"
+    puts "1. Enter the position of the piece you want to select"
+    puts "2. Enter where you want to move the piece"
+    @board.display_board
+    puts "\nSelect game mode:"
+    puts "[1] Player vs Player"
+    puts "[2] Player vs Computer"
+  end
+
 
   def play_game
-    introduction
-    @player.select_mode
+    introduction()
+    @mode = select_mode().to_i
     print "\e[2J\e[H"
     @board.display_board
     game_loop()
@@ -58,9 +85,11 @@ class Game
       #debug_announcements()
       all_possible_attacks()
       return if win_condition?
-      prompt_move()
+      game_mode_move()
       implement_special_moves()
       print "\e[2J\e[H"
+      print_ai_move()
+      sleep 0.3
       @board.display_board
       @round += 1
     end
@@ -74,6 +103,14 @@ class Game
     end
   end
 
+  def game_mode_move
+    if @round.even? && @mode == 2
+      ai_move()
+    else 
+      prompt_move
+    end
+  end
+
   def prompt_move 
     puts "#{player_turn}: Select a piece"
     selection = prompt_valid_selection()
@@ -83,7 +120,23 @@ class Game
     puts "#{player_turn}: Select a position"
     move = prompt_valid_move()
     @board.move_piece(selection, move)
+  end
+
+  def ai_move
+    ai_selection = @computer.pick_random_piece(@white_attacks, @black_attacks)
+    # puts "Black piece: #{black_ai.sort{|a, b| a <=> b}.join(', ')}"
     
+    ai_move = @computer.pick_random_move(ai_selection, @white_attacks, @black_attacks)
+    @board.move_piece(ai_selection, ai_move)
+
+    print_move = [ai_move]
+    @printed_ai_move = algebraic_possible_moves(print_move).join(', ')
+  end
+
+  def print_ai_move()
+    if @round.even? && @mode == 2
+      puts "Computer moved to: #{@printed_ai_move}"
+    end
   end
 
   # player input gets converted to array coordinates here
@@ -101,6 +154,7 @@ class Game
     end
   end
 
+  # get chess notation and convert to array position
   def prompt_valid_move
     loop do
       chess_notation = @player.select_position
@@ -113,19 +167,6 @@ class Game
       rescue NoMethodError
         puts "\nInvalid, enter a move with algebraic notation"
     end
-  end
-
-  def introduction
-    print "\e[2J\e[H"
-    puts "Welcome to chess!"
-    puts "\nHow to play:"
-    puts "\nUsing algebraic notation eg. d2"
-    puts "1. Enter the position of the piece you want to select"
-    puts "2. Enter where you want to move the piece"
-    @board.display_board
-    puts "\nSelect game mode:"
-    puts "[1] Player vs Player"
-    puts "[2] Player vs Computer"
   end
 
   # List of possible attacks and protected pieces to prevent enemy king from moving on
@@ -274,14 +315,14 @@ class Board
 
   def initialize
     @chessboard = [
-      [' ♖ ', '   ', '   ', '   ', ' ♔ ', '   ', '   ', ' ♖ '],
+      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
+      [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
+      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
   
     @display = []
@@ -1028,15 +1069,6 @@ class Player
   def initialize(board, piece)
     @board = board
     @piece = piece
-    @player1 = nil
-    @player2 = nil
-  end
-
-  def get_names
-    puts 'Player 1 what is your name?'
-    @player1 = gets.chomp
-    puts 'Player 2 what is your name?'
-    @player2 = gets.chomp
   end
 
   def select_position
@@ -1058,17 +1090,6 @@ class Player
     else
       return false
     end
-  end
-
-
-  def select_mode
-    loop do
-      mode = gets.chomp.to_i
-      return mode if mode.between?(1,2)
-
-      puts 'Enter 1 or 2 to select mode'
-    end
-    mode
   end
 
 end
@@ -1202,24 +1223,54 @@ class Serializer
 end
 
 class Computer
-  # build simple AI (random legal move, random piece, random location)
-  # Select game mode
+  def initialize(board, piece)
+    @board = board
+    @chessboard = board.chessboard
+    @piece = piece
+  end
+
+  def pick_random_piece(white_attacks, black_attacks)
+    pieces = valid_black_piece(white_attacks, black_attacks)
+    return pieces.sample
+  end
+
+  # Iterate through board and choose a black piece with valid moves
+  def valid_black_piece(white_attacks, black_attacks)
+    pieces = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ', ' ♟ ']
+    ai_positions = []
+    indexes = @board.board_indexes()
+
+    indexes.each do |index|
+      row = index[0]
+      col = index[1]
+      element = @chessboard[row][col]
+      available_moves = @piece.check_piece(index, 2, black_attacks, white_attacks)
+      if pieces.include?(element) && available_moves.any?
+        ai_positions << index
+      end
+    end
+
+    ai_positions
+  end
+
+  def pick_random_move(selected_piece, white_attacks, black_attacks)
+    available_moves = @piece.check_piece(selected_piece, 2, black_attacks, white_attacks)
+    random_move = available_moves.sample
+  end
+
+
 end
 
 board = Board.new
 special = Special_moves.new(board)
 piece = Piece.new(board, special)
 player = Player.new(board, piece)
-game = Game.new(board, player, piece, special)
+computer = Computer.new(board, piece)
+game = Game.new(board, player, piece, special, computer)
 game.play_game
 
 
 
-# edge cases
-
-# list of possible moves / clear display / maybe put moves in Alphabetical?
-# learn how to refresh/clear console and update after every move?
-  # or simulate it
 
 # simple ai / select game mode
   # player vs player
