@@ -1,5 +1,8 @@
+require 'json'
+
 class Game
-  attr_accessor :round
+  attr_accessor :round, :selected_possible_moves, :notation_moves, :white_attacks, :black_attacks, :all_white_moves, :all_black_moves, :mode, :printed_ai_move
+
   def initialize(board, player, piece, special, computer)
     @board = board
     @chessboard = board.chessboard
@@ -7,7 +10,7 @@ class Game
     @piece = piece
     @round = 1
     @selected_possible_moves = []
-    @notation_moves = [] # for faster testing
+    @notation_moves = []
     @white_attacks = []
     @black_attacks = []
     @all_white_moves = []
@@ -34,6 +37,9 @@ class Game
   end
 
   def select_mode
+    puts "\nSelect game mode:"
+    puts "[1] Player vs Player"
+    puts "[2] Player vs Computer"
     loop do
       mode = gets.chomp.to_i
       return mode if mode.between?(1,2)
@@ -52,14 +58,30 @@ class Game
     puts "1. Enter the position of the piece you want to select"
     puts "2. Enter where you want to move the piece"
     @board.display_board
-    puts "\nSelect game mode:"
-    puts "[1] Player vs Player"
-    puts "[2] Player vs Computer"
+    puts "\nEnter 'save' while playing to save game"
   end
 
+  def new_or_save
+    puts "\n[1] New Game"
+    puts "[2] Load Game"
+
+    loop do
+      mode = gets.chomp
+
+      if mode == '1'
+        break
+      elsif mode == '2'
+        # load game function
+        break
+      else
+        puts "Please enter '1' or '2'"
+      end
+    end
+  end
 
   def play_game
     introduction()
+    new_or_save()
     @mode = select_mode().to_i
     print "\e[2J\e[H"
     @board.display_board
@@ -142,7 +164,7 @@ class Game
   # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
-      chess_notation = @player.select_position
+      p chess_notation = @player.select_position
       array_position = @board.select_piece(chess_notation)
       @selected_possible_moves = @piece.check_piece(array_position, @round, @black_attacks, @white_attacks) # check what piece is being selected and return possible moves
       @notation_moves = algebraic_possible_moves(@selected_possible_moves)
@@ -153,6 +175,12 @@ class Game
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
     end
   end
+
+  #def exit_game(input)
+  #  if input == 'save'
+  #    exit
+  #  end
+  #end
 
   # get chess notation and convert to array position
   def prompt_valid_move
@@ -171,7 +199,7 @@ class Game
 
   # List of possible attacks and protected pieces to prevent enemy king from moving on
   # Pawn attacks are edge cases since they attack different from traversal
-  def white_attacks(indexes)
+  def list_white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
     
@@ -192,7 +220,7 @@ class Game
   end
 
 
-  def black_attacks(indexes)
+  def list_black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     pawn = [' ♟ ']
     
@@ -213,8 +241,8 @@ class Game
   # Calls functions that show all possible attacks on empty spaces, enemy units, and protected pieces so that King can't move over them
   def all_possible_attacks
     indexes = @board.board_indexes
-    white = algebraic_possible_moves(white_attacks(indexes))
-    black = algebraic_possible_moves(black_attacks(indexes))
+    white = algebraic_possible_moves(list_white_attacks(indexes))
+    black = algebraic_possible_moves(list_black_attacks(indexes))
     #puts "White Attacks #{white}"
     #puts "Black Attacks #{black}"
   end
@@ -311,7 +339,7 @@ class Game
 end
 
 class Board
-  attr_accessor :chessboard
+  attr_accessor :chessboard, :display
 
   def initialize
     @chessboard = [
@@ -1072,10 +1100,20 @@ class Player
     @piece = piece
   end
 
+  def set_instance(serializer)
+    @serializer = serializer
+  end
+
+  # might need to create instance of serializer method to save game and call function
+
   def select_position
     loop do
       position = gets.chomp.downcase
-      return position if valid_input?(position)
+      if valid_input?(position)
+        return position 
+      elsif position == 'save'
+        @serializer.save_game
+      end
 
       puts "\nPlease enter a position using algebraic notation"
     end
@@ -1096,6 +1134,8 @@ class Player
 end
 
 class Special_moves
+  attr_accessor :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king
+
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
@@ -1213,14 +1253,63 @@ class Special_moves
       @chessboard[7][0] = '   '
     end
   end
-
-
-
 end
 
 
 class Serializer
-  # Make game saveable by serializing with JSON
+  def initialize(board, player, piece, special, computer, game)
+    @board = board
+    @player = player
+    @piece = piece
+    @special = special
+    @computer = computer
+    @game = game
+  end
+
+
+  # Makes path to saved games in parent directory from the current directory to store game state
+  def save_game
+    puts 'Enter a filename for your saved game:'
+    file_name = gets.chomp.strip
+
+    save_folder_path = File.expand_path('../saved_games', __dir__)
+    Dir.mkdir(save_folder_path) unless Dir.exist?(save_folder_path)
+    File.open(File.join(save_folder_path, "#{file_name}.json"), 'w') do |file|
+      file.puts(JSON.dump({
+                            chessboard: @board.chessboard,
+                            display: @board.display,
+
+                            white_pins: @piece.white_pins,
+                            black_pins: @piece.black_pins,
+                            white_checks: @piece.white_checks,
+                            black_checks: @piece.black_checks,
+                            king_white_checks: @piece.king_white_checks,
+                            king_black_checks: @piece.king_black_checks,
+                            black_protected: @piece.black_protected,
+                            white_protected: @piece.white_protected,
+                            
+                            a1_rook: @special.a1_rook,
+                            h1_rook: @special.h1_rook,
+                            white_king: @special.white_king,
+                            a8_rook: @special.a8_rook,
+                            h8_rook: @special.h8_rook,
+                            black_king: @special.black_king,
+                            
+                            round: @game.round,
+                            selected_possible_moves: @game.selected_possible_moves,
+                            notation_moves: @game.notation_moves,
+                            white_attacks: @game.white_attacks,
+                            black_attacks: @game.black_attacks,
+                            all_white_moves: @game.all_white_moves,
+                            all_black_moves: @game.all_black_moves,
+                            mode: @game.mode,
+                            printed_ai_move: @game.printed_ai_move,
+                          }))
+    end
+    puts 'Game saved successfully!'
+    exit
+  end
+
 end
 
 class Computer
@@ -1268,6 +1357,8 @@ piece = Piece.new(board, special)
 player = Player.new(board, piece)
 computer = Computer.new(board, piece)
 game = Game.new(board, player, piece, special, computer)
+serializer = Serializer.new(board, player, piece, special, computer, game)
+player.set_instance(serializer)
 game.play_game
 
 
@@ -1275,6 +1366,6 @@ game.play_game
 # serializer / save (done before on hangman)
   # save instance variables
 
-# put pieces into sub classes?
+# put pieces into sub classes? rook < piece or keep
 # put tests in folder
 #Private, style guide, clean code
