@@ -21,6 +21,10 @@ class Game
     @printed_ai_move = nil
   end
 
+  def set_instance(serializer)
+    @serializer = serializer
+  end
+
   # Show notation For faster puts testing
   def algebraic_possible_moves(moves)
     if moves == nil 
@@ -61,7 +65,7 @@ class Game
     puts "\nEnter 'save' while playing to save game"
   end
 
-  def new_or_save
+  def new_or_saved
     puts "\n[1] New Game"
     puts "[2] Load Game"
 
@@ -72,7 +76,10 @@ class Game
         break
       elsif mode == '2'
         # load game function
-        break
+        @serializer.load_game
+        p "load successful"
+        # modified display method
+        # into game loop / add flag for reseting game state variables?
       else
         puts "Please enter '1' or '2'"
       end
@@ -81,7 +88,7 @@ class Game
 
   def play_game
     introduction()
-    new_or_save()
+    new_or_saved()
     @mode = select_mode().to_i
     print "\e[2J\e[H"
     @board.display_board
@@ -124,6 +131,7 @@ class Game
     end
   end
 
+  # Choose between player input or AI generated depending on selected mode
   def game_mode_move
     if @round.even? && @mode == 2
       sleep 1
@@ -164,7 +172,7 @@ class Game
   # player input gets converted to array coordinates here
   def prompt_valid_selection
     loop do 
-      p chess_notation = @player.select_position
+      chess_notation = @player.get_player_input
       array_position = @board.select_piece(chess_notation)
       @selected_possible_moves = @piece.check_piece(array_position, @round, @black_attacks, @white_attacks) # check what piece is being selected and return possible moves
       @notation_moves = algebraic_possible_moves(@selected_possible_moves)
@@ -185,7 +193,7 @@ class Game
   # get chess notation and convert to array position
   def prompt_valid_move
     loop do
-      chess_notation = @player.select_position
+      chess_notation = @player.get_player_input
       array_move = @board.select_piece(chess_notation)
        if @selected_possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
         #p "Round number: #{@round}"
@@ -1106,7 +1114,7 @@ class Player
 
   # might need to create instance of serializer method to save game and call function
 
-  def select_position
+  def get_player_input
     loop do
       position = gets.chomp.downcase
       if valid_input?(position)
@@ -1310,6 +1318,54 @@ class Serializer
     exit
   end
 
+  def load_game
+    puts "\nSaved files:"
+    save_folder_path = File.join(File.expand_path('..', __dir__), 'saved_games')
+    Dir.children(save_folder_path).each { |file| puts file.slice(0..-6) }
+    puts ' '
+    puts 'Enter the filename you would like to load:'
+
+    loop do
+      file_name = gets.chomp.strip
+      file_path = File.join(save_folder_path, "#{file_name}.json")
+
+      if File.exist?(file_path)
+        json = JSON.load_file(file_path)
+        @board.chessboard = json['chessboard']
+        @board.display = json['display']
+
+        @piece.white_pins = json['white_pins']
+        @piece.black_pins = json['black_pins']
+        @piece.white_checks = json['white_checks']
+        @piece.black_checks = json['black_checks']
+        @piece.king_white_checks = json['king_white_checks']
+        @piece.king_black_checks = json['king_black_checks']
+        @piece.black_protected = json['black_protected']
+        @piece.white_protected = json['white_protected']
+
+        @special.a1_rook = json['a1_rook']
+        @special.h1_rook = json['h1_rook']
+        @special.white_king = json['white_king']
+        @special.a8_rook = json['a8_rook']
+        @special.h8_rook = json['h8_rook']
+        @special.black_king = json['black_king']
+
+        @game.round = json['round']
+        @game.selected_possible_moves = json['selected_possible_moves']
+        @game.notation_moves = json['notation_moves']
+        @game.white_attacks = json['white_attacks']
+        @game.black_attacks = json['black_attacks']
+        @game.all_white_moves = json['all_white_moves']
+        @game.all_black_moves = json['all_black_moves']
+        @game.mode = json['mode']
+        @game.printed_ai_move = json['printed_ai_move']
+        break
+      else
+        puts 'File not found, please enter the name of a saved file:'
+      end
+    end
+  end
+
 end
 
 class Computer
@@ -1359,6 +1415,7 @@ computer = Computer.new(board, piece)
 game = Game.new(board, player, piece, special, computer)
 serializer = Serializer.new(board, player, piece, special, computer, game)
 player.set_instance(serializer)
+game.set_instance(serializer)
 game.play_game
 
 
