@@ -1,7 +1,7 @@
 require 'json'
 
 class Game
-  attr_accessor :round, :selected_possible_moves, :notation_moves, :white_attacks, :black_attacks, :all_white_moves, :all_black_moves, :mode, :printed_ai_move
+  attr_accessor :round, :selected_possible_moves, :notation_moves, :white_attacks, :black_attacks, :all_white_moves, :all_black_moves, :mode, :printed_ai_move, :chessboard
 
   def initialize(board, player, piece, special, computer)
     @board = board
@@ -19,6 +19,7 @@ class Game
     @mode = nil
     @computer = computer
     @printed_ai_move = nil
+    @loaded_game = false
   end
 
   def set_instance(serializer)
@@ -65,6 +66,7 @@ class Game
     puts "\nEnter 'save' while playing to save game"
   end
 
+  # New game will continue to the game loop 
   def new_or_saved
     puts "\n[1] New Game"
     puts "[2] Load Game"
@@ -75,23 +77,29 @@ class Game
       if mode == '1'
         break
       elsif mode == '2'
-        # load game function
         @serializer.load_game
-        p "load successful"
-        # modified display method
-        # into game loop / add flag for reseting game state variables?
+        @loaded_game = true
+        break
       else
         puts "Please enter '1' or '2'"
       end
     end
   end
 
+  def loaded_game_flag()
+    if @loaded_game == true 
+      @loaded_game = false
+      puts 'Game loaded successfully:'
+    end
+  
+  # then continue the game loop
+  end
+
   def play_game
     introduction()
     new_or_saved()
-    @mode = select_mode().to_i
-    print "\e[2J\e[H"
-    @board.display_board
+    @mode = select_mode().to_i if @loaded_game == false
+    @board.position_console_board
     game_loop()
     #return color win announcement
   end
@@ -110,14 +118,15 @@ class Game
 
   def game_loop
     loop do
-      reset_game_state()
+      # skip these if loaded_game flag is true?
+      loaded_game_flag()
+      reset_game_state()# if @loaded_game == false
       #debug_announcements()
       all_possible_attacks()
       return if win_condition?
-      game_mode_move()
+      ai_or_player_move()
       implement_special_moves()
-      print "\e[2J\e[H"
-      @board.display_board
+      @board.position_console_board
       print_ai_move()
       @round += 1
     end
@@ -132,7 +141,7 @@ class Game
   end
 
   # Choose between player input or AI generated depending on selected mode
-  def game_mode_move
+  def ai_or_player_move
     if @round.even? && @mode == 2
       sleep 1
       ai_move()
@@ -144,8 +153,7 @@ class Game
   def prompt_move 
     puts "#{player_turn}: Select a piece"
     selection = prompt_valid_selection()
-    print "\e[2J\e[H"
-    @board.display_board
+    @board.position_console_board
     puts "Possible Moves: #{@notation_moves.sort{|a, b| a <=> b}.join(', ')}"
     puts "#{player_turn}: Select a position"
     move = prompt_valid_move()
@@ -356,8 +364,8 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', ' ♖ ', '   ', '   ', '   ', '   ', ' ♟ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟ '],
+      ['   ', '   ', ' ♖ ', '   ', '   ', '   ', '   ', '   '],
       ['   ', ' ♚ ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
@@ -401,6 +409,12 @@ class Board
     puts '   a  b  c  d  e  f  g  h   '
     @display = []
   end 
+
+  #
+  def position_console_board
+    print "\e[2J\e[H"
+    display_board
+  end
 
   # Makes colored clone of board for display purposes
   def colored_clone
@@ -470,7 +484,7 @@ end
 
 # put accessor in class if you want to access it in a different one
 class Piece
-  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks, :black_protected, :white_protected
+  attr_accessor :black_pins, :white_pins, :black_checks, :white_checks, :king_white_checks, :king_black_checks, :black_protected, :white_protected, :chessboard
 
   def initialize(board, special)
     @board = board
@@ -1103,10 +1117,7 @@ end
 end
 
 class Player
-  def initialize(board, piece)
-    @board = board
-    @piece = piece
-  end
+  attr_accessor :chessboard
 
   def set_instance(serializer)
     @serializer = serializer
@@ -1142,7 +1153,7 @@ class Player
 end
 
 class Special_moves
-  attr_accessor :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king
+  attr_accessor :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king, :chessboard
 
   def initialize(board)
     @board = board
@@ -1342,6 +1353,8 @@ class Serializer
         @piece.king_black_checks = json['king_black_checks']
         @piece.black_protected = json['black_protected']
         @piece.white_protected = json['white_protected']
+        @piece.chessboard = json['chessboard']
+
 
         @special.a1_rook = json['a1_rook']
         @special.h1_rook = json['h1_rook']
@@ -1349,6 +1362,7 @@ class Serializer
         @special.a8_rook = json['a8_rook']
         @special.h8_rook = json['h8_rook']
         @special.black_king = json['black_king']
+        @special.chessboard = json['chessboard']
 
         @game.round = json['round']
         @game.selected_possible_moves = json['selected_possible_moves']
@@ -1359,6 +1373,10 @@ class Serializer
         @game.all_black_moves = json['all_black_moves']
         @game.mode = json['mode']
         @game.printed_ai_move = json['printed_ai_move']
+        
+        @game.chessboard = json['chessboard']
+
+        @computer.chessboard = json['chessboard']
         break
       else
         puts 'File not found, please enter the name of a saved file:'
@@ -1369,6 +1387,8 @@ class Serializer
 end
 
 class Computer
+  attr_accessor :chessboard
+
   def initialize(board, piece)
     @board = board
     @chessboard = board.chessboard
@@ -1410,7 +1430,7 @@ end
 board = Board.new
 special = Special_moves.new(board)
 piece = Piece.new(board, special)
-player = Player.new(board, piece)
+player = Player.new
 computer = Computer.new(board, piece)
 game = Game.new(board, player, piece, special, computer)
 serializer = Serializer.new(board, player, piece, special, computer, game)
