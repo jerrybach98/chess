@@ -99,7 +99,7 @@ class Game
     introduction()
     new_or_saved()
     @mode = select_mode().to_i if @loaded_game == false
-    @board.position_console_board
+    @board.reset_board_display
     game_loop()
     #return color win announcement
   end
@@ -121,12 +121,12 @@ class Game
       # skip these if loaded_game flag is true?
       loaded_game_flag()
       reset_game_state()# if @loaded_game == false
-      #debug_announcements()
       all_possible_attacks()
       return if win_condition?
+      debug_announcements()
       ai_or_player_move()
       implement_special_moves()
-      @board.position_console_board
+      @board.reset_board_display
       print_ai_move()
       @round += 1
     end
@@ -153,7 +153,7 @@ class Game
   def prompt_move 
     puts "#{player_turn}: Select a piece"
     selection = prompt_valid_selection()
-    @board.position_console_board
+    @board.reset_board_display
     puts "Possible Moves: #{@notation_moves.sort{|a, b| a <=> b}.join(', ')}"
     puts "#{player_turn}: Select a position"
     move = prompt_valid_move()
@@ -215,6 +215,8 @@ class Game
 
   # List of possible attacks and protected pieces to prevent enemy king from moving on
   # Pawn attacks are edge cases since they attack different from traversal
+  # also chains the check_piece methods into individual piece methods storing game logic of piece positioning
+  # separately adds protected pieces
   def list_white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
@@ -364,9 +366,9 @@ class Board
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟ '],
-      ['   ', '   ', ' ♖ ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', ' ♚ ', '   ', '   ', '   ', '   ', '   ', '   ']
+      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      [' ♚ ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   ']
     ]
   
     @display = []
@@ -411,7 +413,7 @@ class Board
   end 
 
   #
-  def position_console_board
+  def reset_board_display
     print "\e[2J\e[H"
     display_board
   end
@@ -1055,8 +1057,8 @@ end
   def generate_protected_positions(move, coordinates, round)
     white_line_piece = [' ♗ ', ' ♖ ', ' ♕ ']
     black_line_piece = [' ♝ ', ' ♜ ', ' ♛ ']
-    black_non_line = [' ♞ ', ' ♟ ']
-    whte_non_line = [' ♘ ', ' ♙ ']
+    black_non_line = [' ♞ ', ' ♟ ', ' ♚ ']
+    whte_non_line = [' ♘ ', ' ♙ ', ' ♔ ']
   
     row = coordinates[0] 
     col = coordinates[1]
@@ -1440,9 +1442,10 @@ game.play_game
 
 
 
-# serializer / save (done before on hangman)
-  # save instance variables
+# serializer
+
 
 # put pieces into sub classes? rook < piece or keep
 # put tests in folder
 #Private, style guide, clean code
+# make common chess openings to save
