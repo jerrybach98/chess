@@ -28,59 +28,56 @@ class Game
   end
 
   def play_game
-    introduction()
-    new_or_saved()
-    @mode = select_mode().to_i if @loaded_game == false
+    introduction
+    new_or_saved
+    @mode = select_mode.to_i if @loaded_game == false
     @board.reset_board_display
-    game_loop()
+    game_loop
   end
 
   private
 
   # Display array positions in chess notation
   def algebraic_possible_moves(moves)
-    if moves == nil 
-      return 
-    else
-      new_moves = moves.map do |move|
-        array = move.reverse
-        row = (array[0] + 97).chr
-        col = (array[1] + 1).to_s
-        notation = [row, col] * ""
-      end
+    return if moves.nil?
+
+    moves.map do |move|
+      array = move.reverse
+      row = (array[0] + 97).chr
+      col = (array[1] + 1).to_s
+      notation = [row, col].join('')
     end
-    new_moves
   end
 
   def select_mode
     puts "\nSelect game mode:"
-    puts "[1] Player vs Player"
-    puts "[2] Player vs Computer"
+    puts '[1] Player vs Player'
+    puts '[2] Player vs Computer'
     loop do
       mode = gets.chomp.to_i
-      return mode if mode.between?(1,2)
+      return mode if mode.between?(1, 2)
 
       puts 'Enter 1 or 2 to select mode'
     end
-    
+
     mode
   end
 
   def introduction
     print "\e[2J\e[H"
-    puts "Welcome to chess!"
+    puts 'Welcome to chess!'
     puts "\nHow to play:"
     puts "\nUsing algebraic notation eg. d2"
-    puts "1. Enter the position of the piece you want to select"
-    puts "2. Enter where you want to move the piece"
+    puts '1. Enter the position of the piece you want to select'
+    puts '2. Enter where you want to move the piece'
     @board.display_board
     puts "\nEnter 'save' while playing to save game"
   end
 
-  # New game will continue to the game loop 
+  # New game will continue to the game loop
   def new_or_saved
     puts "\n[1] New Game"
-    puts "[2] Load Game"
+    puts '[2] Load Game'
 
     loop do
       mode = gets.chomp
@@ -99,10 +96,10 @@ class Game
 
   # If the game is loaded, it will skip mode selection
   def loaded_game_flag
-    if @loaded_game == true 
-      @loaded_game = false
-      puts 'Game loaded successfully:'
-    end
+    return unless @loaded_game == true
+
+    @loaded_game = false
+    puts 'Game loaded successfully:'
   end
 
   def debug_announcements
@@ -116,48 +113,48 @@ class Game
     puts "White Protected Piece: #{algebraic_possible_moves(@piece.white_protected)}"
   end
 
-
   def game_loop
     loop do
-      loaded_game_flag()
-      reset_game_state()
-      all_possible_attacks()
+      loaded_game_flag
+      reset_game_state
+      all_possible_attacks
       return if win_condition?
-      #debug_announcements()
-      ai_or_player_move()
-      implement_special_moves()
+
+      # debug_announcements()
+      ai_or_player_move
+      implement_special_moves
       @board.reset_board_display
-      print_ai_move()
+      print_ai_move
       @round += 1
     end
   end
 
   def player_turn
-    if @round.odd? 
-      "White"
+    if @round.odd?
+      'White'
     elsif @round.even?
-      "Black"
+      'Black'
     end
   end
 
-  # Choose between player input or AI generated move depending on mode for black
+  # Choose between player input or AI generated move depending on mode for black. Delay AI move to simulate a player.
   def ai_or_player_move
     if @round.even? && @mode == 2
       sleep 1
-      ai_move()
-    else 
+      ai_move
+    else
       prompt_move
     end
   end
-  
+
   # Calls logic to get both a player's selection then move to update board
-  def prompt_move 
+  def prompt_move
     puts "#{player_turn}: Select a piece"
-    selection = prompt_valid_selection()
+    selection = prompt_valid_selection
     @board.reset_board_display
-    puts "Possible Moves: #{@notation_moves.sort{|a, b| a <=> b}.join(', ')}"
+    puts "Possible Moves: #{@notation_moves.sort { |a, b| a <=> b }.join(', ')}"
     puts "#{player_turn}: Select a position"
-    move = prompt_valid_move()
+    move = prompt_valid_move
     @board.move_piece(selection, move)
   end
 
@@ -171,22 +168,23 @@ class Game
     @printed_ai_move = algebraic_possible_moves(print_move).join(', ')
   end
 
-  def print_ai_move()
-    if @round.even? && @mode == 2
-      puts "Computer moved to: #{@printed_ai_move}"
-    end
+  def print_ai_move
+    return unless @round.even? && @mode == 2
+
+    puts "Computer moved to: #{@printed_ai_move}"
   end
 
   # Select piece then converts to array coordinates and checks validity
   def prompt_valid_selection
-    loop do 
+    loop do
       chess_notation = @player.get_player_input
       array_position = @board.select_piece(chess_notation)
       @selected_possible_moves = @piece.check_piece(array_position, @round, @black_attacks, @white_attacks)
       @notation_moves = algebraic_possible_moves(@selected_possible_moves)
       return array_position if @piece.friendly_piece?(array_position, @round) && @selected_possible_moves.any?
+
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
-      rescue NoMethodError
+    rescue NoMethodError
       puts "\nInvalid selection, enter a valid piece with algebraic notation"
     end
   end
@@ -196,12 +194,11 @@ class Game
     loop do
       chess_notation = @player.get_player_input
       array_move = @board.select_piece(chess_notation)
-       if @selected_possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
-        return array_move
-       end
+      return array_move if @selected_possible_moves.include?(array_move) && @piece.move_in_bounds?(array_move)
+
       puts "\nInvalid, enter a move with algebraic notation"
-      rescue NoMethodError
-        puts "\nInvalid, enter a move with algebraic notation"
+    rescue NoMethodError
+      puts "\nInvalid, enter a move with algebraic notation"
     end
   end
 
@@ -209,7 +206,7 @@ class Game
   def list_white_attacks(indexes)
     white = [' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     pawn = [' ♙ ']
-    
+
     indexes.each do |index|
       row = index[0]
       col = index[1]
@@ -224,11 +221,10 @@ class Game
     @white_attacks = @white_attacks.concat(@piece.white_protected).uniq
   end
 
-
   def list_black_attacks(indexes)
     black = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     pawn = [' ♟ ']
-    
+
     indexes.each do |index|
       row = index[0]
       col = index[1]
@@ -239,7 +235,7 @@ class Game
         @black_attacks.concat(@piece.pawn_attacks(index, 2))
       end
     end
-  
+
     @black_attacks = @black_attacks.concat(@piece.black_protected).uniq
   end
 
@@ -275,13 +271,13 @@ class Game
     black = algebraic_possible_moves(generate_black_moves(indexes))
 
     if checkmate?(white, black)
-      puts "Checkmate!"
+      puts 'Checkmate!'
       true
     elsif stalemate?(white, black)
-      puts "stalemate!"
+      puts 'stalemate!'
       true
     elsif @piece.king_black_checks.empty? == false && round.odd? || @piece.king_white_checks.empty? == false && round.even?
-      puts "Check!"
+      puts 'Check!'
       false
     else
       false
@@ -296,9 +292,7 @@ class Game
       row = index[0]
       col = index[1]
       element = @chessboard[row][col]
-      if white.include?(element)
-        @all_white_moves.concat(@piece.check_piece(index, 1, @black_attacks, @all_white_moves))
-      end
+      @all_white_moves.concat(@piece.check_piece(index, 1, @black_attacks, @all_white_moves)) if white.include?(element)
     end
     @all_white_moves
   end
@@ -310,9 +304,7 @@ class Game
       row = index[0]
       col = index[1]
       element = @chessboard[row][col]
-      if black.include?(element)
-        @all_black_moves.concat(@piece.check_piece(index, 2, @all_black_moves, @white_attacks))
-      end
+      @all_black_moves.concat(@piece.check_piece(index, 2, @all_black_moves, @white_attacks)) if black.include?(element)
     end
 
     @all_black_moves
@@ -340,7 +332,6 @@ class Game
     @piece.white_protected = []
     @piece.black_protected = []
   end
-  
 end
 
 # Handles board visualization and logic
@@ -358,7 +349,7 @@ class Board
       [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
-  
+
     @display = []
   end
 
@@ -395,7 +386,7 @@ class Board
     end
     puts '   a  b  c  d  e  f  g  h   '
     @display = []
-  end 
+  end
 
   # Prints board to top left of console
   def reset_board_display
@@ -403,13 +394,12 @@ class Board
     display_board
   end
 
-
   # Reverse chess notation string, convert chess notation number to array value (row), and convert ASCII char to num using .ord (col)
   def select_piece(position)
     array = position.split('').reverse
     row = array[0].to_i - 1
     col = array[1].ord - 97
-    return row, col
+    [row, col]
   end
 
   # Update board by moving a piece and setting old position to empty
@@ -430,8 +420,8 @@ class Board
     color_display
   end
 
-   # Creates checkered pattern using indexes for alternating rows and column colors
-   def color_display
+  # Creates checkered pattern using indexes for alternating rows and column colors
+  def color_display
     @display.each_with_index do |row, index|
       if index.odd?
         odd_row_color(row)
@@ -466,7 +456,6 @@ class Board
       end
     end
   end
-
 end
 
 # Uses base moves to generate traversal, pins, checks, etc
@@ -492,10 +481,9 @@ class Piece
   def friendly_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    row = piece_coordinates[0] 
+    row = piece_coordinates[0]
     col = piece_coordinates[1]
     element = @chessboard[row][col]
-    round
     if round.odd? && white.include?(element)
       true
     elsif round.even? && black.include?(element)
@@ -503,11 +491,11 @@ class Piece
     else
       false
     end
-  end 
+  end
 
   # Call function to check possible moves given coordinates of a piece. Each individual piece can generate a check or must move according to check/pin logic
   def check_piece(piece_coordinates, round, black_attacks, white_attacks)
-    row = piece_coordinates[0] 
+    row = piece_coordinates[0]
     col = piece_coordinates[1]
     if [' ♙ ', ' ♟ '].include?(@chessboard[row][col])
       possible_moves = pawn(piece_coordinates, round)
@@ -526,7 +514,7 @@ class Piece
   end
 
   def move_in_bounds?(possible_moves)
-    row = possible_moves[0] 
+    row = possible_moves[0]
     col = possible_moves[1]
     if row.between?(0, 7) && col.between?(0, 7)
       true
@@ -537,7 +525,7 @@ class Piece
 
   # Creates list of possible pawn capture movement if enemy is in range
   def pawn_attacks(pawn_coordinates, round)
-    row = pawn_coordinates[0] 
+    row = pawn_coordinates[0]
     col = pawn_coordinates[1]
     attack_coordinates = []
 
@@ -549,7 +537,7 @@ class Piece
 
     attacks.map do |move|
       possible_attack = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_attack) && friendly_piece?(possible_attack, round) == false 
+      if move_in_bounds?(possible_attack) && friendly_piece?(possible_attack, round) == false
         attack_coordinates << possible_attack
         generate_check(move, pawn_coordinates, round)
         generate_protected_positions(move, pawn_coordinates, round)
@@ -557,7 +545,7 @@ class Piece
         generate_protected_positions(move, pawn_coordinates, round)
       end
     end
-    
+
     attack_coordinates
   end
 
@@ -566,7 +554,7 @@ class Piece
   def enemy_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
     black = [' ♟ ', ' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
-    row = piece_coordinates[0] 
+    row = piece_coordinates[0]
     col = piece_coordinates[1]
     element = @chessboard[row][col]
     if round.even? && white.include?(element)
@@ -576,7 +564,7 @@ class Piece
     else
       false
     end
-  end 
+  end
 
   # Edge case if King is being checked by 2 pieces
   def double_check?(round)
@@ -591,7 +579,7 @@ class Piece
 
   # Add capture movement separately as they require different conditions from base traversal
   def pawn(pawn_coordinates, round)
-    row = pawn_coordinates[0] 
+    row = pawn_coordinates[0]
     col = pawn_coordinates[1]
     pawn_moves = []
     base_moves = pawn_first_move(pawn_coordinates)
@@ -601,11 +589,11 @@ class Piece
 
     base_moves.map do |move|
       possible_move = [row + move[0], col + move[1]]
-      if move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false && double_check?(round) == false
-        pawn_moves << possible_move
-        pawn_moves = pinned_moves(pawn_coordinates, pawn_moves, round)
-        pawn_moves = friendly_moves_in_check(pawn_coordinates, pawn_moves, round)
-      end
+      next unless move_in_bounds?(possible_move) && friendly_piece?(possible_move, round) == false && enemy_piece?(possible_move, round) == false && double_check?(round) == false
+
+      pawn_moves << possible_move
+      pawn_moves = pinned_moves(pawn_coordinates, pawn_moves, round)
+      pawn_moves = friendly_moves_in_check(pawn_coordinates, pawn_moves, round)
     end
 
     pawn_moves
@@ -616,33 +604,31 @@ class Piece
     diagonal_attacks = []
 
     attacks.each do |attack|
-      if enemy_piece?(attack, round) == true
-        diagonal_attacks << attack
-      end
+      diagonal_attacks << attack if enemy_piece?(attack, round) == true
     end
     diagonal_attacks
   end
 
   # Return vertical traversal moves depending on pawn position. Pawn can move two squares on first move with nothing blocking it's path
   def pawn_first_move(pawn_coordinates)
-    row = pawn_coordinates[0] 
+    row = pawn_coordinates[0]
     col = pawn_coordinates[1]
     pawn_moves = []
-  
-    if row == 1 && @chessboard[row][col] == ' ♙ ' && @chessboard[row+1][col] == '   '
+
+    if row == 1 && @chessboard[row][col] == ' ♙ ' && @chessboard[row + 1][col] == '   '
       pawn_moves = [[1, 0], [2, 0]]
     elsif row != 1 && @chessboard[row][col] == ' ♙ '
       pawn_moves = [[1, 0]]
-    elsif row == 6 && @chessboard[row][col] == ' ♟ ' && @chessboard[row-1][col] == '   '
+    elsif row == 6 && @chessboard[row][col] == ' ♟ ' && @chessboard[row - 1][col] == '   '
       pawn_moves = [[-1, 0], [-2, 0]]
-    elsif row != 6 && @chessboard[row][col] == ' ♟ ' 
+    elsif row != 6 && @chessboard[row][col] == ' ♟ '
       pawn_moves = [[-1, 0]]
     end
     pawn_moves
   end
 
   def knight(knight_coordinates, round)
-    row = knight_coordinates[0] 
+    row = knight_coordinates[0]
     col = knight_coordinates[1]
     base_moves = [[2, 1], [1, 2], [2, -1], [1, -2], [-2, 1], [-1, 2], [-2, -1], [-1, -2]]
     knight_moves = []
@@ -664,7 +650,7 @@ class Piece
   def bishop(bishop_coordinates, round)
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1]]
     bishop_moves = []
-    
+
     base_moves.each do |move|
       bishop_moves.concat(line_traversal(move, bishop_coordinates, round))
       pins(move, bishop_coordinates, round)
@@ -679,7 +665,7 @@ class Piece
   def rook(rook_coordinates, round)
     base_moves = [[1, 0], [-1, 0], [0, -1], [0, 1]]
     rook_moves = []
-    
+
     base_moves.each do |move|
       rook_moves.concat(line_traversal(move, rook_coordinates, round))
       pins(move, rook_coordinates, round)
@@ -694,7 +680,7 @@ class Piece
   def queen(queen_coordinates, round)
     base_moves = [[1, 1], [1, -1], [-1, -1], [-1, 1], [1, 0], [-1, 0], [0, -1], [0, 1]]
     queen_moves = []
-    
+
     base_moves.each do |move|
       queen_moves.concat(line_traversal(move, queen_coordinates, round))
       pins(move, queen_coordinates, round)
@@ -709,11 +695,11 @@ class Piece
   # Increment position by base moves of line traversal pieces. Moves on empty spaces until end of board, before a friendly unit is reached, or until first enemy unit in path.
   def line_traversal(move, coordinates, round)
     moves = []
-    row = coordinates[0] 
+    row = coordinates[0]
     col = coordinates[1]
     7.times do
-      row = row + move[0]
-      col = col + move[1]
+      row += move[0]
+      col += move[1]
       new_move = [row, col]
       if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false && double_check?(round) == false
         moves << new_move
@@ -728,7 +714,7 @@ class Piece
   end
 
   def king(king_coordinates, round, black_attacks, white_attacks)
-    row = king_coordinates[0] 
+    row = king_coordinates[0]
     col = king_coordinates[1]
     base_moves = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]]
     king_moves = []
@@ -757,22 +743,22 @@ class Piece
   end
 
   # Return possible king moves in check by removing any matching moves from the check line
-  def king_in_check(coordinates, moves, round)
+  def king_in_check(_coordinates, moves, round)
     if @king_black_checks.empty? == false && round.odd?
-      moves = moves - @king_black_checks.flatten(1) 
+      moves -= @king_black_checks.flatten(1)
     elsif @king_white_checks.empty? == false && round.even?
-      moves = moves - @king_white_checks.flatten(1) 
+      moves -= @king_white_checks.flatten(1)
     else
       moves
     end
   end
 
   # Friendly moves must block a check by moving on the check line or by capturing the enemy piece
-  def friendly_moves_in_check(coordinates, moves, round)
+  def friendly_moves_in_check(_coordinates, moves, round)
     if @black_checks.empty? == false && round.odd?
-      moves = moves & @black_checks.flatten(1) 
+      moves &= @black_checks.flatten(1)
     elsif @white_checks.empty? == false && round.even?
-      moves = moves & @white_checks.flatten(1) 
+      moves &= @white_checks.flatten(1)
     else
       moves
     end
@@ -780,19 +766,17 @@ class Piece
 
   # See what moves a pinned piece can make
   def pinned_moves(coordinates, possible_moves, round)
-    if @black_pins[coordinates] != nil && round.odd?
-      new_moves = possible_moves & @black_pins[coordinates]
-    elsif
-      @white_pins[coordinates] != nil && round.even?
-      new_moves = possible_moves & @white_pins[coordinates]
-    else 
-      new_moves = possible_moves
+    if !@black_pins[coordinates].nil? && round.odd?
+      possible_moves & @black_pins[coordinates]
+    elsif !@white_pins[coordinates].nil? && round.even?
+      possible_moves & @white_pins[coordinates]
+    else
+      possible_moves
     end
-    new_moves
   end
 
   # Call function generates array coordinates in line for friendly piece to block/capture and another line for King to move off/capture
-  def generate_check(move, coordinates, round)
+  def generate_check(move, coordinates, _round)
     white_pieces = [' ♗ ', ' ♖ ', ' ♕ ', ' ♘ ', ' ♙ ']
     black_pieces = [' ♝ ', ' ♜ ', ' ♛ ', ' ♞ ', ' ♟ ']
     piece = @chessboard[coordinates[0]][coordinates[1]]
@@ -813,38 +797,38 @@ class Piece
     end
   end
 
-  # Adds check line to an instance variable 
+  # Adds check line to an instance variable
   def add_checks(moves, coordinates, round, king_color, checks)
     king = find_king(moves, king_color)
     enemy = pin_line_pieces(moves, round)
 
-    if king == true && enemy == 1
-      moves << coordinates
-      checks << moves
-    end
+    return unless king == true && enemy == 1
+
+    moves << coordinates
+    checks << moves
   end
 
   # For king movement
-  def add_king_checks(moves, coordinates, round, king_color, checks)
+  def add_king_checks(moves, _coordinates, _round, king_color, checks)
     king = find_king(moves, king_color)
 
-    if king == true
-      checks << moves
-    end
-  end
+    return unless king == true
 
+    checks << moves
+  end
 
   # For friendly pieces to block or capture checks
   def check_attack_line(move, coordinates, round, king)
     line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']
     non_line = [' ♘ ', ' ♙ ', ' ♞ ', ' ♟ ']
     moves = []
-    row = coordinates[0] 
+    row = coordinates[0]
     col = coordinates[1]
 
     if line_piece.include?(@chessboard[row][col])
       process_attack_line(move, row, col, round, king, moves)
-    else non_line.include?(@chessboard[row][col])
+    else
+      non_line.include?(@chessboard[row][col])
       pawn_knight_checks(move, row, col, round, king, moves)
     end
     moves
@@ -853,8 +837,8 @@ class Piece
   # Calculate check line for line traversal
   def process_attack_line(move, row, col, round, king, moves)
     7.times do
-      row = row + move[0]
-      col = col + move[1]
+      row += move[0]
+      col += move[1]
       new_move = [row, col]
       if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
         moves << new_move
@@ -869,36 +853,37 @@ class Piece
 
   # when Pawn or knight puts king in check
   def pawn_knight_checks(move, row, col, round, king, moves)
-    row = row + move[0]
-    col = col + move[1]
+    row += move[0]
+    col += move[1]
     new_move = [row, col]
-    if move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
-      moves << new_move
-    end
+    return unless move_in_bounds?(new_move) && enemy_piece?(new_move, round) == true && @chessboard[row][col] == king
+
+    moves << new_move
   end
 
-  # Call function generating enemy moves for king to move away or capture checking piece 
+  # Call function generating enemy moves for king to move away or capture checking piece
   def king_attack_line(move, coordinates, round, king)
     line_piece = [' ♗ ', ' ♖ ', ' ♕ ', ' ♝ ', ' ♜ ', ' ♛ ']
     non_line = [' ♘ ', ' ♙ ', ' ♞ ', ' ♟ ']
     moves = []
-    row = coordinates[0] 
+    row = coordinates[0]
     col = coordinates[1]
 
     if line_piece.include?(@chessboard[row][col])
       process_king_attack_line(move, row, col, round, king, moves)
-    else non_line.include?(@chessboard[row][col])
+    else
+      non_line.include?(@chessboard[row][col])
       pawn_knight_checks(move, row, col, round, king, moves)
     end
-    
+
     moves
   end
 
   # Helper function creating line for king to move out of
   def process_king_attack_line(move, row, col, round, king, moves)
     7.times do
-      row = row + move[0]
-      col = col + move[1]
+      row += move[0]
+      col += move[1]
       new_move = [row, col]
       if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
         moves << new_move
@@ -914,11 +899,10 @@ class Piece
   end
 
   # Called in line traversal pieces to generate pin information
-  def pins(move, coordinates, round)
+  def pins(move, coordinates, _round)
     white_pinners = [' ♗ ', ' ♖ ', ' ♕ ']
     black_pinners = [' ♝ ', ' ♜ ', ' ♛ ']
     piece = @chessboard[coordinates[0]][coordinates[1]]
-
 
     if black_pinners.include?(piece)
       black_moves = line_of_attack(move, coordinates, 2, ' ♔ ')
@@ -932,11 +916,11 @@ class Piece
   # Returns line of attack for line movement pieces to calculate pins. Stops pin line traversal once king is reached
   def line_of_attack(move, coordinates, round, king)
     moves = []
-    row = coordinates[0] 
+    row = coordinates[0]
     col = coordinates[1]
     7.times do
-      row = row + move[0]
-      col = col + move[1]
+      row += move[0]
+      col += move[1]
       new_move = [row, col]
       if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == false && enemy_piece?(new_move, round) == false
         moves << new_move
@@ -955,11 +939,11 @@ class Piece
     king = find_king(moves, king_color)
     enemy = pin_line_pieces(moves, round)
 
-    if king == true && enemy == 2
-      pinned = find_pinned_piece(moves, round, king)
-      moves << coordinates
-      pins[pinned] = moves
-    end
+    return unless king == true && enemy == 2
+
+    pinned = find_pinned_piece(moves, round, king)
+    moves << coordinates
+    pins[pinned] = moves
   end
 
   # Need two enemy pieces to meet pin criteria, check for how many enemies
@@ -1002,19 +986,18 @@ class Piece
         break
       end
     end
-  
+
     king
   end
 
-
   # Call function generating list of coordinates that have another piece protecting it. Line traversal pieces require separate logic.
-  def generate_protected_positions(move, coordinates, round)
+  def generate_protected_positions(move, coordinates, _round)
     white_line_piece = [' ♗ ', ' ♖ ', ' ♕ ']
     black_line_piece = [' ♝ ', ' ♜ ', ' ♛ ']
     black_non_line = [' ♞ ', ' ♟ ', ' ♚ ']
     whte_non_line = [' ♘ ', ' ♙ ', ' ♔ ']
-  
-    row = coordinates[0] 
+
+    row = coordinates[0]
     col = coordinates[1]
 
     if white_line_piece.include?(@chessboard[row][col])
@@ -1023,19 +1006,19 @@ class Piece
       non_line_protected(move, row, col, coordinates, 1, @white_protected)
 
     elsif black_line_piece.include?(@chessboard[row][col])
-    line_protected(move, coordinates, 2, @black_protected)
-    else black_non_line.include?(@chessboard[row][col])
+      line_protected(move, coordinates, 2, @black_protected)
+    else
+      black_non_line.include?(@chessboard[row][col])
       non_line_protected(move, row, col, coordinates, 2, @black_protected)
     end
-    
   end
 
   def line_protected(move, coordinates, round, protected_moves)
-    row = coordinates[0] 
+    row = coordinates[0]
     col = coordinates[1]
     7.times do
-      row = row + move[0]
-      col = col + move[1]
+      row += move[0]
+      col += move[1]
       new_move = [row, col]
       if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == true && enemy_piece?(new_move, round) == false
         protected_moves << new_move
@@ -1044,9 +1027,9 @@ class Piece
     end
   end
 
-  def non_line_protected(move, row, col, coordinates, round, protected_moves)
-    row = row + move[0]
-    col = col + move[1]
+  def non_line_protected(move, row, col, _coordinates, round, protected_moves)
+    row += move[0]
+    col += move[1]
     new_move = [row, col]
     if move_in_bounds?(new_move) && friendly_piece?(new_move, round) == true && enemy_piece?(new_move, round) == false
       protected_moves << new_move
@@ -1055,19 +1038,15 @@ class Piece
 
   # Array coordinates conversion for faster debugging
   def algebraic_moves(moves)
-    if moves == nil 
-      return 
-    else
-      new_moves = moves.map do |move|
-        array = move.reverse
-        row = (array[0] + 97).chr
-        col = (array[1] + 1).to_s
-        notation = [row, col] * ""
-      end
-    end
-    new_moves
-  end
+    return if moves.nil?
 
+    moves.map do |move|
+      array = move.reverse
+      row = (array[0] + 97).chr
+      col = (array[1] + 1).to_s
+      notation = [row, col].join('')
+    end
+  end
 end
 
 # Handle player input
@@ -1082,7 +1061,7 @@ class Player
     loop do
       position = gets.chomp.downcase
       if valid_input?(position)
-        return position 
+        return position
       elsif position == 'save'
         @serializer.save_game
       end
@@ -1092,19 +1071,16 @@ class Player
     position
   end
 
-  private 
+  private
 
   # Check if algebraic notation is correct
   def valid_input?(position)
     array = position.split('')
     array[1] = array[1].to_i
-    if array[0].match?(/[a-h]/) && array[1].between?(1, 8) && array.count == 2
-      return true
-    else
-      return false
-    end
-  end
+    return true if array[0].match?(/[a-h]/) && array[1].between?(1, 8) && array.count == 2
 
+    false
+  end
 end
 
 class Special_moves
@@ -1124,13 +1100,13 @@ class Special_moves
 
   # Promote pawn to queen when reaching other side
   def pawn_promotion
-    indexes = @board.board_indexes()
+    indexes = @board.board_indexes
     indexes.each do |index|
       row = index[0]
       col = index[1]
       if row == 7 && @chessboard[row][col] == ' ♙ '
         @chessboard[row][col] = ' ♕ '
-      elsif row == 0 && @chessboard[row][col] == ' ♟ ' 
+      elsif row == 0 && @chessboard[row][col] == ' ♟ '
         @chessboard[row][col] = ' ♛ '
       end
     end
@@ -1146,8 +1122,8 @@ class Special_moves
   end
 
   # Check if each castle side is available and add King's castle coordinates to its' base moves
-  def castling(king_coordinates, round, white_check_line, black_check_line, white_attacks, black_attacks)
-    row = king_coordinates[0] 
+  def castling(king_coordinates, _round, white_check_line, black_check_line, white_attacks, black_attacks)
+    row = king_coordinates[0]
     col = king_coordinates[1]
     w_kingside_pos = [0, 6]
     w_queenside_pos = [0, 2]
@@ -1160,7 +1136,7 @@ class Special_moves
     elsif black_kingside_castle?(row, col, white_check_line, white_attacks)
       castle_moves << b_kingside_pos
     end
-    
+
     if white_queenside_castle?(row, col, black_check_line, black_attacks)
       castle_moves << w_queenside_pos
     elsif black_queenside_castle?(row, col, white_check_line, white_attacks)
@@ -1187,7 +1163,7 @@ class Special_moves
     end
   end
 
-  private 
+  private
 
   # Castle Criteria: Check king color, can't escape check, no pieces between, no attacks between, and if pieces have already moved
   def white_kingside_castle?(row, col, black_check_line, black_attacks)
@@ -1213,9 +1189,7 @@ class Special_moves
       true
     end
   end
-
 end
-
 
 class Serializer
   def initialize(board, player, piece, special, computer, game)
@@ -1226,7 +1200,6 @@ class Serializer
     @computer = computer
     @game = game
   end
-
 
   # Makes path to saved games in parent directory from the current lib directory to store game state
   def save_game
@@ -1248,14 +1221,14 @@ class Serializer
                             king_black_checks: @piece.king_black_checks,
                             black_protected: @piece.black_protected,
                             white_protected: @piece.white_protected,
-                            
+
                             a1_rook: @special.a1_rook,
                             h1_rook: @special.h1_rook,
                             white_king: @special.white_king,
                             a8_rook: @special.a8_rook,
                             h8_rook: @special.h8_rook,
                             black_king: @special.black_king,
-                            
+
                             round: @game.round,
                             selected_possible_moves: @game.selected_possible_moves,
                             notation_moves: @game.notation_moves,
@@ -1264,7 +1237,7 @@ class Serializer
                             all_white_moves: @game.all_white_moves,
                             all_black_moves: @game.all_black_moves,
                             mode: @game.mode,
-                            printed_ai_move: @game.printed_ai_move,
+                            printed_ai_move: @game.printed_ai_move
                           }))
     end
     puts 'Game saved successfully!'
@@ -1298,7 +1271,6 @@ class Serializer
         @piece.white_protected = json['white_protected']
         @piece.chessboard = json['chessboard']
 
-
         @special.a1_rook = json['a1_rook']
         @special.h1_rook = json['h1_rook']
         @special.white_king = json['white_king']
@@ -1316,7 +1288,6 @@ class Serializer
         @game.all_black_moves = json['all_black_moves']
         @game.mode = json['mode']
         @game.printed_ai_move = json['printed_ai_move']
-        
         @game.chessboard = json['chessboard']
 
         @computer.chessboard = json['chessboard']
@@ -1326,7 +1297,6 @@ class Serializer
       end
     end
   end
-
 end
 
 # Basic AI generating random moves
@@ -1341,7 +1311,7 @@ class Computer
 
   def pick_random_piece(white_attacks, black_attacks)
     pieces = valid_black_piece(white_attacks, black_attacks)
-    return pieces.sample
+    pieces.sample
   end
 
   def pick_random_move(selected_piece, white_attacks, black_attacks)
@@ -1349,27 +1319,24 @@ class Computer
     random_move = available_moves.sample
   end
 
-  private 
+  private
 
   # Iterate through board and choose a black piece containing valid moves
   def valid_black_piece(white_attacks, black_attacks)
     pieces = [' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ', ' ♟ ']
     ai_positions = []
-    indexes = @board.board_indexes()
+    indexes = @board.board_indexes
 
     indexes.each do |index|
       row = index[0]
       col = index[1]
       element = @chessboard[row][col]
       available_moves = @piece.check_piece(index, 2, black_attacks, white_attacks)
-      if pieces.include?(element) && available_moves.any?
-        ai_positions << index
-      end
+      ai_positions << index if pieces.include?(element) && available_moves.any?
     end
 
     ai_positions
   end
-
 end
 
 board = Board.new
@@ -1384,7 +1351,6 @@ player.set_instance(serializer)
 game.set_instance(serializer)
 game.play_game
 
-
-# Private, style guide, clean code
-# put classes / tests in folder 
+# put classes / tests in folder
 # make common chess openings to save
+# edit Readme
