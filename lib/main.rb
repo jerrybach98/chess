@@ -549,7 +549,7 @@ class Piece
     attack_coordinates
   end
 
-  private
+  #private
 
   def enemy_piece?(piece_coordinates, round)
     white = [' ♙ ', ' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
@@ -1071,7 +1071,7 @@ class Player
     position
   end
 
-  private
+  #private
 
   # Check if algebraic notation is correct
   def valid_input?(position)
@@ -1083,7 +1083,7 @@ class Player
   end
 end
 
-class Special_moves
+class Special
   attr_accessor :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king, :chessboard
 
   def initialize(board)
@@ -1340,7 +1340,7 @@ class Computer
 end
 
 board = Board.new
-special = Special_moves.new(board)
+special = Special.new(board)
 piece = Piece.new(board, special)
 player = Player.new
 computer = Computer.new(board, piece)
@@ -1349,8 +1349,8 @@ serializer = Serializer.new(board, player, piece, special, computer, game)
 # Set instances gives classes access to the serializer methods to save the game
 player.set_instance(serializer)
 game.set_instance(serializer)
-game.play_game
+#game.play_game
 
-# put classes / tests in folder
+# put classes in folder / update tests
 # make common chess openings to save
 # edit Readme

@@ -15,8 +15,9 @@ end
 
 describe Piece do
   describe 'friendly_piece?' do
-    subject(:piece) { described_class.new(board) }
+    subject(:piece) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
         [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -25,7 +26,7 @@ describe Piece do
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
@@ -56,8 +57,9 @@ describe Piece do
   end
 
   describe 'enemy_piece?' do
-    subject(:enemy) { described_class.new(board) }
+    subject(:enemy) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
         [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -66,7 +68,7 @@ describe Piece do
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
@@ -85,8 +87,9 @@ describe Piece do
   end
 
   describe 'bishop' do
-    subject(:bishop) { described_class.new(board) }
+    subject(:bishop) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
       [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -95,7 +98,7 @@ describe Piece do
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
       ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+      [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
       [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
     ]
   end
@@ -115,8 +118,9 @@ describe Piece do
   end
 
   describe 'knight' do
-    subject(:knight) { described_class.new(board) }
+    subject(:knight) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
         [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -125,7 +129,7 @@ describe Piece do
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
@@ -145,17 +149,18 @@ describe Piece do
   end
 
   describe 'rook' do
-    subject(:rook) { described_class.new(board) }
+    subject(:rook) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
         [' ♖ ', '   ', '   ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-        [' ♟︎ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        [' ♟ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
@@ -175,8 +180,9 @@ describe Piece do
   end
 
   describe 'king' do
-    subject(:king) { described_class.new(board) }
+    subject(:king) { described_class.new(board, special) }
     let(:board) { instance_double(Board) }
+    let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
         [' ♖ ', ' ♘ ', ' ♗ ', '   ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
@@ -185,7 +191,7 @@ describe Piece do
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
         ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-        [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
@@ -194,6 +200,7 @@ describe Piece do
     context 'when king is on array position 0, 4' do
       before do
         allow(board).to receive(:chessboard).and_return(chessboard)
+        allow(special).to receive(:castling).and_return([])
       end
 
       it 'returns array of correct possible values' do
@@ -209,11 +216,9 @@ describe Piece do
 end
 
 describe Player do
-  describe '#select_position' do
+  describe '#get_player_input' do
     context 'when player provides a correct board position' do
-      subject(:player) { described_class.new(board, piece) }
-      let(:board) { instance_double(Board) }
-      let(:piece) { instance_double(Piece) }
+      subject(:player) { described_class.new() }
 
       before do
        # allow(players).to receive(:puts)
@@ -221,31 +226,27 @@ describe Player do
       end
 
       it 'returns the correct position' do
-        expect(player.select_position).to eq('a2')
+        expect(player.get_player_input).to eq('a2')
       end
     end
 
     context 'when player provides an incorrect then correct board position' do
-      subject(:player) { described_class.new(board, piece) }
-      let(:board) { instance_double(Board) }
-      let(:piece) { instance_double(Piece) }
+      subject(:player) { described_class.new() }
 
       before do
         allow(player).to receive(:gets).and_return('a9', 'a2')
       end
 
       it 'displays error once then complete loop' do
-        expect(player).to receive(:puts).with('Enter a position with algebraic notation').once
-        player.select_position
+        expect(player).to receive(:puts).with("\nPlease enter a position using algebraic notation").once
+        player.get_player_input
       end
     end
   end
 
 
   describe '#valid_input?' do
-    subject(:input) { described_class.new(board, piece) }
-    let(:board) { instance_double(Board) }
-    let(:piece) { instance_double(Piece) }
+    subject(:input) { described_class.new() }
 
     context 'when player inputs valid input' do
       it 'returns true' do
@@ -260,49 +261,3 @@ describe Player do
     end
   end
 end
-  
-  
-  #check for check after each move
-  # create check line, including piece itself
-
-
-
-  #influence actual move generation: if king is in range of move' or check if check line is not empty
-  # avoid check: friendly piece move generation has to be on check line or capture enemy check position (similar to pin logic) for line movements (queen, bishop, rook)
-
-  # king has to move/capture or friendly pieces have to capture for non line enemy (pawn, knight)
-    # King has to move off of line or capture enemy (doesn't need to adjust king moves in this case)
-    # cross reference all available friend moves to check line?
-
-  # checkmate if king can't move/block/capture
-    # and no friendly piece possible move can move on check line/enemy
-
-  # double check?
-  
-    @chessboard = [
-      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      [' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', '   ', '   ', ' ♟︎ ', '   ', ' ♟︎ ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', ' ♕ ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ ', ' ♞ ', ' ♟︎ ', ' ♟︎ ', ' ♟︎ '],
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
-    ]
-
-    @chessboard = [
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♔ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♖ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♙ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♟︎ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♜ ', '   ', '   ', '   ', '   ', '   ', '   ', ' ♚ ']
-    ]
-
-
-
-[' ♘ ', ' ♗ ', ' ♖ ', ' ♕ ', ' ♔ ']
-
-[' ♞ ', ' ♝ ', ' ♜ ', ' ♛ ', ' ♚ ']

@@ -1,7 +1,6 @@
-# chess
-
-# Connect Four
-Chess is a command-line interface (CLI) game that allows two players to compete against each other.
+# Chess
+A command-line interface (CLI) game that allows up to two players to compete against each other or against a computer AI.
+1 line
 
 **Live Demo: https://replit.com/@jerrybach98/...
 
@@ -10,26 +9,27 @@ Chess is a command-line interface (CLI) game that allows two players to compete 
 
 **Tech Used:** Ruby, RSpec
 
+### How to play:
+* Saving / loading
+* Castling: 
+
 ### Lessons Learned:
 * Learn how ANSI escape codes interacts with terminal for color
 * ASCII for numbers
 * Create advanced command line game
-* Breaking code down into parts / structured approach to writing
+* Breaking game down into parts or logical steps/ structured approach to writing by thinking logically and staying organized
 * Applying cumulative experience from past projects Eg. caesar cipher
 * Implementing RSpec testing coverage to prevent repetitive command line self testing
 * Importance of testing in complex projects / aiding in code recall
 * Importance of method chaining and code reusability
 
 
-
-
-
-
-
 ### further optimizations / rules
-Adding more draw criteria (Threefold repetition, Fifty-move rule, dead positions)
-simplify logic to less methods
-more advanced AI, recursion, breadth first search for min max
+* Adding more draw criteria (Threefold repetition, Fifty-move rule, dead positions)
+* simplify logic to less methods
+* more advanced AI, recursion, breadth first search for min max
 flipping board
-Reducing redundant code for black and white pieces
-Further modularize code
+* Reducing redundant code for black and white pieces
+* Further modularize code
+* Pawn promotion prompt, currently only promotes to Queen
+* En passant
