@@ -1,4 +1,7 @@
 require './lib/main'
+require './lib/board'
+require './lib/piece'
+require './lib/player'
 
 describe Board do
   describe 'select_piece' do
@@ -7,7 +10,7 @@ describe Board do
     context 'when given chess notation' do
       it 'converts to a nested array value' do
         position = 'c2'
-        expect(board.select_piece(position)).to eq([1,2])
+        expect(board.select_piece(position)).to eq([1, 2])
       end
     end
   end
@@ -92,17 +95,16 @@ describe Piece do
     let(:special) { instance_double(Special) }
     let(:chessboard) do
       [
-      [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
-      [' ♙ ', ' ♗ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
-      [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
-      [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
-    ]
-  end
-    
+        [' ♖ ', ' ♘ ', ' ♗ ', ' ♕ ', ' ♔ ', ' ♗ ', ' ♘ ', ' ♖ '],
+        [' ♙ ', ' ♗ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ ', ' ♙ '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        ['   ', '   ', '   ', '   ', '   ', '   ', '   ', '   '],
+        [' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ ', ' ♟ '],
+        [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
+      ]
+    end
 
     context 'when bishop is on array position 1, 1' do
       before do
@@ -133,7 +135,6 @@ describe Piece do
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
-    
 
     context 'when knight is on array position 0, 1' do
       before do
@@ -164,7 +165,6 @@ describe Piece do
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
-    
 
     context 'when rook is on array position 0, 0' do
       before do
@@ -195,7 +195,6 @@ describe Piece do
         [' ♜ ', ' ♞ ', ' ♝ ', ' ♛ ', ' ♚ ', ' ♝ ', ' ♞ ', ' ♜ ']
       ]
     end
-    
 
     context 'when king is on array position 0, 4' do
       before do
@@ -212,16 +211,15 @@ describe Piece do
       end
     end
   end
-
 end
 
 describe Player do
   describe '#get_player_input' do
     context 'when player provides a correct board position' do
-      subject(:player) { described_class.new() }
+      subject(:player) { described_class.new }
 
       before do
-       # allow(players).to receive(:puts)
+        # allow(players).to receive(:puts)
         allow(player).to receive(:gets).and_return('a2')
       end
 
@@ -231,7 +229,7 @@ describe Player do
     end
 
     context 'when player provides an incorrect then correct board position' do
-      subject(:player) { described_class.new() }
+      subject(:player) { described_class.new }
 
       before do
         allow(player).to receive(:gets).and_return('a9', 'a2')
@@ -244,9 +242,8 @@ describe Player do
     end
   end
 
-
   describe '#valid_input?' do
-    subject(:input) { described_class.new() }
+    subject(:input) { described_class.new }
 
     context 'when player inputs valid input' do
       it 'returns true' do
