@@ -1,5 +1,5 @@
 # Chess CLI Game
-A command-line interface (CLI) chess game written in Ruby, offering multiplayer and single-player against a computer AI.
+A command-line interface (CLI) chess game written in Ruby, offering multiplayer PVP or single-player against a computer AI.
 
 **Live Demo: [Replit Demo](https://replit.com/@jerrybach98/...)**
 
@@ -7,10 +7,10 @@ A command-line interface (CLI) chess game written in Ruby, offering multiplayer 
 - **Language:** Ruby
 - **Testing:** RSpec
 
-### How to play:
+## How to play:
 * **Modes:** Users can compete against each other or against a computer AI.
 * **Move Input:** Input moves using chess notation for piece selection then destination.
-* **Saving:** The game allows users to save their progress at any point by typing 'save'
+* **Saving:** The game allows users to save their progress at any point by typing 'save'.
 * **Castling:** King's castling is supported; players can select the king and enter the castle coordinates.
 
 ## Lessons Learned:
@@ -25,9 +25,9 @@ A command-line interface (CLI) chess game written in Ruby, offering multiplayer 
 
 
 ## Further ehancements
-* **Draw Criteria:** Adding more draw criteria, such as Threefold repetition, Fifty-move rule, and detecting dead positions.
-* **Advanced AI:** Implementing more advanced AI with recursion and breadth-first search for min-max strategies.
-* **Board Flipping:** Enabling board flipping for both perspectives.
-* **Code Refactoring:** Reducing redundant code for black and white pieces, further modularizing the code.
-* **Pawn Promotion:** Enhancing pawn promotion by allowing choices beyond the default Queen.
-* **En Passant:** Implementing the en passant rule for a more comprehensive gameplay experience.
+**Draw Criteria:** Adding more draw criteria, such as Threefold repetition, Fifty-move rule, and detecting dead positions.
+**Advanced AI:** Implementing more advanced AI with recursion and breadth-first search for min-max strategies.
+**Board Flipping:** Enabling board flipping for both perspectives.
+**Code Refactoring:** Reducing redundant code for black and white pieces, further modularizing the code.
+**Pawn Promotion:** Enhancing pawn promotion by allowing choices beyond the default Queen.
+**En Passant:** Implementing the en passant rule for a more comprehensive gameplay experience.
