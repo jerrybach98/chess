@@ -18,6 +18,7 @@ A command-line interface (CLI) game that allows up to two players to compete aga
 * ASCII for numbers
 * Create advanced command line game
 * Breaking game down into parts or logical steps/ structured approach to writing by thinking logically and staying organized
+* pseudocoding
 * Applying cumulative experience from past projects Eg. caesar cipher
 * Implementing RSpec testing coverage to prevent repetitive command line self testing
 * Importance of testing in complex projects / aiding in code recall
