@@ -1,14 +1,13 @@
 require 'json'
 require_relative 'board'
 
-# Special move logic and board update
+# Special move logic and updates board respectively
 class Special
   attr_accessor :a1_rook, :h1_rook, :white_king, :a8_rook, :h8_rook, :black_king, :chessboard
 
   def initialize(board)
     @board = board
     @chessboard = board.chessboard
-
     @a1_rook = true
     @h1_rook = true
     @white_king = true

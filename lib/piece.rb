@@ -13,7 +13,6 @@ class Piece
     @black_pins = {}
     @white_checks = []
     @black_checks = []
-
     @king_white_checks = []
     @king_black_checks = []
     @black_protected = []

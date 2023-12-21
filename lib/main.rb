@@ -18,5 +18,3 @@ serializer = Serializer.new(board, player, piece, special, computer, game)
 player.set_instance(serializer)
 game.set_instance(serializer)
 game.play_game
-
-# edit Readme

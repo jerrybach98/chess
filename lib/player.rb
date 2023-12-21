@@ -1,7 +1,7 @@
 require 'json'
 require_relative 'serializer'
 
-# Handle player input
+# Handle player input and validity
 class Player
   attr_accessor :chessboard
 

@@ -5,7 +5,7 @@ require_relative 'piece'
 require_relative 'player'
 require_relative 'computer'
 
-# Handles game state and win conditions
+# Handles game loop, game state, and win conditions
 class Game
   attr_accessor :round, :selected_possible_moves, :notation_moves, :white_attacks, :black_attacks, :all_white_moves, :all_black_moves, :mode, :printed_ai_move, :chessboard
 
