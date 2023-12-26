@@ -3,7 +3,7 @@ A command-line interface (CLI) chess game written in Ruby, offering multiplayer 
 
 ## How to Play:
 **Play Online:**\
-[![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@jerrybach98/...)\
+[![Try with Replit](https://replit.com/badge?caption=Try%20with%20Replit)](https://replit.com/@jerrybach98/chess)\
 Or to play locally, you must have Ruby installed. See [here](https://www.ruby-lang.org/en/downloads/) for more details. This program was written in Ruby 3.2.2. Clone this repository, navigate to the directory and type ruby lib/main.rb in your terminal.
 
 ## Live Demo:
