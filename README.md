@@ -7,7 +7,7 @@ A command-line interface (CLI) chess game written in Ruby, offering multiplayer 
 Or to play locally, you must have Ruby installed. See [here](https://www.ruby-lang.org/en/downloads/) for more details. This program was written in Ruby 3.2.2. Clone this repository, navigate to the directory and type ruby lib/main.rb in your terminal.
 
 ## Live Demo:
-<img src="media/demo.gif" alt="chess opening" width=auto height="400px"/><br>
+<img src="media/demo.gif" alt="chess opening" width=auto height="800px"/><br>
 
 ## Tech Stack
 - **Language:** Ruby
@@ -30,7 +30,7 @@ Or to play locally, you must have Ruby installed. See [here](https://www.ruby-la
 * RSpec Testing: Implemented RSpec testing for basic unit coverage and prevent self-testing redundancy.
 * Code Reusability: Utilized method chaining and code reusability to minimize code.
 
-## Further ehancements:
+## Further enhancements:
 * Draw Criteria: Add more draw criteria, such as Threefold repetition, Fifty-move rule, and detecting dead positions.
 * Advanced AI: Implement more advanced AI with recursion and breadth-first search for min-max algorithms.
 * Board Flipping: Enable board flipping for both perspectives.
